@@ -3,19 +3,12 @@ const API_BASE = "";
 const state = {
   app: null,
   user: null,
-  authMode: "login",
   theme: localStorage.getItem("innotalk-theme") || "light"
 };
 
 const els = {
-  authView: document.getElementById("authView"),
   appView: document.getElementById("appView"),
   themeToggle: document.getElementById("themeToggle"),
-  loginTab: document.getElementById("loginTab"),
-  registerTab: document.getElementById("registerTab"),
-  loginForm: document.getElementById("loginForm"),
-  registerForm: document.getElementById("registerForm"),
-  authMessage: document.getElementById("authMessage"),
   appMessage: document.getElementById("appMessage"),
   logoutButton: document.getElementById("logoutButton"),
   advanceButton: document.getElementById("advanceButton"),
@@ -56,21 +49,13 @@ function setTheme(theme) {
   localStorage.setItem("innotalk-theme", theme);
 }
 
-function setAuthMode(mode) {
-  state.authMode = mode;
-  els.loginTab.className = `tab-button rounded-full px-4 py-2 text-sm font-semibold ${mode === "login" ? "bg-teal-700/10 text-teal-700 dark:text-teal-300" : "bg-slate-200 text-slate-600 dark:bg-white/5 dark:text-slate-300"}`;
-  els.registerTab.className = `tab-button rounded-full px-4 py-2 text-sm font-semibold ${mode === "register" ? "bg-teal-700/10 text-teal-700 dark:text-teal-300" : "bg-slate-200 text-slate-600 dark:bg-white/5 dark:text-slate-300"}`;
-  els.loginForm.classList.toggle("hidden", mode !== "login");
-  els.loginForm.classList.toggle("grid", mode === "login");
-  els.registerForm.classList.toggle("hidden", mode !== "register");
-  els.registerForm.classList.toggle("grid", mode === "register");
-  setMessage("auth", "");
+function setMessage(text, tone = "") {
+  els.appMessage.textContent = text;
+  els.appMessage.className = `mt-4 min-h-6 text-sm ${tone === "error" ? "text-red-500" : tone === "success" ? "text-emerald-600 dark:text-emerald-400" : "text-slate-500 dark:text-slate-300"}`;
 }
 
-function setMessage(target, text, tone = "") {
-  const el = target === "auth" ? els.authMessage : els.appMessage;
-  el.textContent = text;
-  el.className = `mt-4 min-h-6 text-sm ${tone === "error" ? "text-red-500" : tone === "success" ? "text-emerald-600 dark:text-emerald-400" : "text-slate-500 dark:text-slate-300"}`;
+function redirectToLogin() {
+  window.location.href = "login.html";
 }
 
 async function request(path, options = {}) {
@@ -113,8 +98,10 @@ function getVerdictClasses(label) {
 
 function renderAuthState() {
   const isAuthed = Boolean(state.user);
-  els.authView.classList.toggle("hidden", isAuthed);
-  els.appView.classList.toggle("hidden", !isAuthed);
+  if (!isAuthed) {
+    redirectToLogin();
+  }
+  els.appView.classList.remove("hidden");
 }
 
 function renderStats() {
@@ -278,11 +265,17 @@ function renderApp() {
   renderReport();
 }
 
-async function loadBootstrap() {
-  const payload = await request("/api/bootstrap", { method: "GET", headers: {} });
-  state.app = payload.app;
-  state.user = payload.user;
-  renderApp();
+function loadUserData() {
+  const userData = localStorage.getItem("innotalk-user");
+  const appData = localStorage.getItem("innotalk-app");
+  
+  if (userData && appData) {
+    state.user = JSON.parse(userData);
+    state.app = JSON.parse(appData);
+    renderApp();
+  } else {
+    redirectToLogin();
+  }
 }
 
 async function mutateSimulation(path, body, successMessage) {
@@ -296,57 +289,19 @@ async function mutateSimulation(path, body, successMessage) {
   setMessage("app", successMessage, "success");
 }
 
-async function handleRegister(event) {
-  event.preventDefault();
-  const body = Object.fromEntries(new FormData(event.currentTarget).entries());
-
-  try {
-    setMessage("auth", "Creating account...");
-    const payload = await request("/api/register", {
-      method: "POST",
-      body: JSON.stringify(body)
-    });
-    state.app = payload.app;
-    state.user = payload.user;
-    renderApp();
-    setMessage("app", "Account created. Your simulation workspace is ready.", "success");
-    event.currentTarget.reset();
-  } catch (error) {
-    setMessage("auth", error.message, "error");
-  }
-}
-
-async function handleLogin(event) {
-  event.preventDefault();
-  const body = Object.fromEntries(new FormData(event.currentTarget).entries());
-
-  try {
-    setMessage("auth", "Signing you in...");
-    const payload = await request("/api/login", {
-      method: "POST",
-      body: JSON.stringify(body)
-    });
-    state.app = payload.app;
-    state.user = payload.user;
-    renderApp();
-    setMessage("app", "Welcome back. Your simulation has been restored.", "success");
-    event.currentTarget.reset();
-  } catch (error) {
-    setMessage("auth", error.message, "error");
-  }
-}
-
 async function handleLogout() {
   try {
     await request("/api/logout", { method: "POST", body: JSON.stringify({}) });
-    state.user = null;
-    state.app = null;
-    renderAuthState();
-    setAuthMode("login");
-    setMessage("auth", "You have been logged out.", "success");
   } catch (error) {
-    setMessage("app", error.message, "error");
+    // Continue with logout even if API call fails
   }
+  
+  // Clear localStorage
+  localStorage.removeItem("innotalk-user");
+  localStorage.removeItem("innotalk-app");
+  
+  // Redirect to login
+  redirectToLogin();
 }
 
 async function handleExport() {
@@ -373,32 +328,24 @@ async function handleExport() {
 }
 
 els.themeToggle.addEventListener("click", () => setTheme(state.theme === "dark" ? "light" : "dark"));
-els.loginTab.addEventListener("click", () => setAuthMode("login"));
-els.registerTab.addEventListener("click", () => setAuthMode("register"));
-els.loginForm.addEventListener("submit", handleLogin);
-els.registerForm.addEventListener("submit", handleRegister);
 els.logoutButton.addEventListener("click", handleLogout);
 els.advanceButton.addEventListener("click", async () => {
   try {
-    setMessage("app", "Advancing simulation...");
+    setMessage("Advancing simulation...");
     await mutateSimulation("/api/simulation/advance", {}, "Simulation advanced.");
   } catch (error) {
-    setMessage("app", error.message, "error");
+    setMessage(error.message, "error");
   }
 });
 els.resetButton.addEventListener("click", async () => {
   try {
-    setMessage("app", "Resetting simulation...");
+    setMessage("Resetting simulation...");
     await mutateSimulation("/api/simulation/reset", {}, "Simulation reset.");
   } catch (error) {
-    setMessage("app", error.message, "error");
+    setMessage(error.message, "error");
   }
 });
 els.exportButton.addEventListener("click", handleExport);
 
 setTheme(state.theme);
-setAuthMode("login");
-loadBootstrap().catch(() => {
-  renderAuthState();
-  setMessage("auth", "Create an account or sign in to enter the simulation.");
-});
+loadUserData();
