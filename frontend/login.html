@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>InnoTalk - Login</title>
+    <title>InnoTalk - Startup Operating System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -14,8 +14,19 @@
               sans: ["Manrope", "sans-serif"],
               display: ["Space Grotesk", "sans-serif"]
             },
+            animation: {
+              fadeIn: "fadeIn 0.6s ease-in",
+              slideUp: "slideUp 0.8s ease-out",
+              slideInRight: "slideInRight 0.8s ease-out"
+            },
+            keyframes: {
+              fadeIn: { "0%": { opacity: "0" }, "100%": { opacity: "1" } },
+              slideUp: { "0%": { opacity: "0", transform: "translateY(30px)" }, "100%": { opacity: "1", transform: "translateY(0)" } },
+              slideInRight: { "0%": { opacity: "0", transform: "translateX(30px)" }, "100%": { opacity: "1", transform: "translateX(0)" } }
+            },
             boxShadow: {
-              panel: "0 20px 48px rgba(15, 23, 42, 0.12)"
+              panel: "0 20px 48px rgba(15, 23, 42, 0.12)",
+              "card-hover": "0 25px 60px rgba(45, 212, 191, 0.15)"
             }
           }
         }
@@ -27,77 +38,217 @@
       href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap"
       rel="stylesheet"
     />
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .smooth-transition { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+      .card-hover:hover { @apply -translate-y-1 shadow-card-hover; }
+      input:focus { @apply ring-2 ring-teal-500/20; }
+      
+      /* Animations */
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      
+      @keyframes slideInRight {
+        from {
+          opacity: 0;
+          transform: translateX(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+      
+      /* Button ripple effect */
+      button {
+        position: relative;
+        overflow: hidden;
+      }
+      
+      button::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+      }
+      
+      button:active::before {
+        width: 300px;
+        height: 300px;
+      }
+      
+      /* Enhanced input styling */
+      input {
+        transition: all 0.2s ease;
+      }
+      
+      input:focus {
+        box-shadow: inset 0 0 0 1px rgba(13, 148, 136, 0.3), 0 0 0 3px rgba(13, 148, 136, 0.1);
+      }
+      
+      /* Tab button enhancement */
+      .tab-button {
+        position: relative;
+      }
+      
+      .tab-button::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, #0d9488, #3b82f6);
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+      }
+      
+      .tab-button.active::after,
+      #loginTab.bg-teal-600::after,
+      #registerTab.bg-teal-600::after {
+        transform: scaleX(1);
+      }
+      
+      /* Form container animation */
+      #loginForm, #registerForm {
+        animation: fadeInUp 0.4s ease-out;
+      }
+    </style>
   </head>
-  <body class="min-h-screen bg-slate-100 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100">
+  <body class="min-h-screen bg-slate-100 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100 overflow-x-hidden">
     <div class="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(45,212,191,0.16),transparent_24%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.18),transparent_30%)]">
       <div class="mx-auto max-w-[1600px] p-4 md:p-6">
-        <section class="grid min-h-[calc(100vh-2rem)] gap-6 xl:grid-cols-[1.15fr_440px]">
-          <div class="rounded-[30px] border border-white/50 bg-white/80 p-8 shadow-panel backdrop-blur dark:border-white/10 dark:bg-slate-900/80 md:p-10">
-            <p class="mb-3 text-xs font-extrabold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">Execution Gap Operating System</p>
-            <h1 class="max-w-4xl font-display text-4xl leading-none md:text-6xl xl:text-7xl">
-              InnoTalk turns raw social innovation ideas into investor-ready execution simulations.
+        <section class="grid min-h-[calc(100vh-2rem)] gap-6 xl:grid-cols-[1.2fr_420px]">
+          <!-- Left Column - Hero -->
+          <div class="animate-slideUp rounded-3xl border border-white/50 bg-gradient-to-br from-white via-white/95 to-white/90 dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-900/90 p-8 md:p-12 shadow-panel backdrop-blur">
+            <p class="mb-4 text-xs font-extrabold uppercase tracking-[0.35em] text-teal-600 dark:text-teal-400">Execution Gap Operating System</p>
+            <h1 class="max-w-4xl font-display text-5xl md:text-6xl xl:text-7xl font-bold leading-none mb-6">
+              Turn social innovation ideas into investor-ready execution
             </h1>
-            <p class="mt-6 max-w-3xl text-base leading-8 text-slate-500 dark:text-slate-300">
-              Train founders through feasibility analysis, EVT/DVT/PVT validation, Indian compliance pressure,
-              funding intelligence, crisis rehearsal, and boardroom scrutiny inside one guided workspace.
+            <p class="mt-8 max-w-3xl text-lg leading-8 text-slate-600 dark:text-slate-300 mb-10">
+              InnoTalk trains founders through feasibility analysis, EVT/DVT/PVT validation, regulatory pressure, funding intelligence, crisis rehearsal, and boardroom scrutiny—all in one guided workspace.
             </p>
 
-            <div class="mt-8 grid gap-4 md:grid-cols-3">
-              <article class="rounded-3xl border border-slate-200/80 bg-white/70 p-5 dark:border-white/10 dark:bg-white/5">
-                <p class="text-xs font-extrabold uppercase tracking-[0.26em] text-teal-700 dark:text-teal-300">Phase Intelligence</p>
-                <p class="mt-3 text-sm leading-7 text-slate-500 dark:text-slate-300">
-                  7 integrated stages from intake and stakeholder mapping to scaling and smart reporting.
+            <!-- Feature Cards -->
+            <div class="mt-12 grid gap-4 md:grid-cols-3">
+              <article class="card-hover rounded-2xl border border-slate-200/50 dark:border-white/10 bg-white/60 dark:bg-white/5 p-5 smooth-transition">
+                <div class="mb-3 text-2xl">🎯</div>
+                <p class="text-xs font-extrabold uppercase tracking-[0.26em] text-teal-700 dark:text-teal-300">7-Stage Framework</p>
+                <p class="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-300">
+                  From intake through scaling: stakeholder mapping, feasibility, validation, compliance, fundraising, market pressure, and final boardroom pitch.
                 </p>
               </article>
-              <article class="rounded-3xl border border-slate-200/80 bg-white/70 p-5 dark:border-white/10 dark:bg-white/5">
+              <article class="card-hover rounded-2xl border border-slate-200/50 dark:border-white/10 bg-white/60 dark:bg-white/5 p-5 smooth-transition">
+                <div class="mb-3 text-2xl">📊</div>
                 <p class="text-xs font-extrabold uppercase tracking-[0.26em] text-teal-700 dark:text-teal-300">Live Metrics</p>
-                <p class="mt-3 text-sm leading-7 text-slate-500 dark:text-slate-300">
-                  Track budget, trust, impact, risk, readiness, and board score in real time.
+                <p class="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-300">
+                  Real-time dashboards tracking budget, trust, impact, risk, readiness, and board confidence scores throughout the simulation.
                 </p>
               </article>
-              <article class="rounded-3xl border border-slate-200/80 bg-white/70 p-5 dark:border-white/10 dark:bg-white/5">
-                <p class="text-xs font-extrabold uppercase tracking-[0.26em] text-teal-700 dark:text-teal-300">Founder Pressure</p>
-                <p class="mt-3 text-sm leading-7 text-slate-500 dark:text-slate-300">
-                  Simulate the valley of death with finance, tech, and community conflict before real money is on the line.
+              <article class="card-hover rounded-2xl border border-slate-200/50 dark:border-white/10 bg-white/60 dark:bg-white/5 p-5 smooth-transition">
+                <div class="mb-3 text-2xl">⚡</div>
+                <p class="text-xs font-extrabold uppercase tracking-[0.26em] text-teal-700 dark:text-teal-300">Pressure Testing</p>
+                <p class="mt-3 text-sm leading-7 text-slate-600 dark:text-slate-300">
+                  Simulate the valley of death with financial strain, technical setbacks, and community conflicts before real capital is at stake.
                 </p>
               </article>
+            </div>
+
+            <!-- Trust Indicators -->
+            <div class="mt-12 pt-8 border-t border-slate-200 dark:border-white/10">
+              <p class="text-xs font-extrabold uppercase tracking-[0.26em] text-slate-500 dark:text-slate-400 mb-4">Trusted by founders in</p>
+              <div class="flex flex-wrap gap-4 items-center">
+                <span class="text-sm font-semibold text-slate-600 dark:text-slate-300">🇮🇳 India 🇮🇱 Israel 🇸🇬 Singapore</span>
+              </div>
             </div>
           </div>
 
-          <div class="rounded-[30px] border border-white/50 bg-white/85 p-6 shadow-panel backdrop-blur dark:border-white/10 dark:bg-slate-900/85 md:p-8">
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <!-- Right Column - Auth -->
+          <div class="animate-slideInRight rounded-3xl border border-white/50 bg-gradient-to-br from-white via-white/95 to-white/90 dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-900/90 p-6 md:p-8 shadow-panel backdrop-blur">
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-2">
               <div>
-                <p class="text-xs font-extrabold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">Secure Access</p>
-                <h2 class="mt-2 font-display text-3xl">Login or register</h2>
+                <p class="text-xs font-extrabold uppercase tracking-[0.3em] text-teal-600 dark:text-teal-400">Secure Access</p>
+                <h2 class="mt-2 font-display text-2xl md:text-3xl font-bold">Login or sign up</h2>
               </div>
-              <button id="themeToggle" type="button" class="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-900 transition hover:-translate-y-0.5 dark:border-white/10 dark:bg-white/5 dark:text-slate-100">
-                Toggle theme
+              <button id="themeToggle" type="button" class="rounded-full border border-slate-300 dark:border-white/20 bg-white dark:bg-white/5 px-3 py-2 text-sm font-semibold text-slate-900 dark:text-slate-100 transition hover:-translate-y-0.5 smooth-transition">
+                🌓
               </button>
             </div>
 
-            <div class="mt-6 flex gap-3">
-              <button id="loginTab" type="button" class="tab-button rounded-full px-4 py-2 text-sm font-semibold">Login</button>
-              <button id="registerTab" type="button" class="tab-button rounded-full px-4 py-2 text-sm font-semibold">Register</button>
+            <!-- Tab Navigation -->
+            <div class="mt-6 flex gap-2 p-1 bg-slate-100 dark:bg-white/5 rounded-full">
+              <button id="loginTab" type="button" class="tab-button flex-1 rounded-full px-4 py-2 text-sm font-bold transition smooth-transition">Login</button>
+              <button id="registerTab" type="button" class="tab-button flex-1 rounded-full px-4 py-2 text-sm font-bold transition smooth-transition">Sign up</button>
             </div>
 
             <p id="authMessage" class="mt-4 min-h-6 text-sm text-slate-500 dark:text-slate-300"></p>
 
-            <form id="loginForm" class="mt-4 grid gap-4">
+            <!-- Login Form -->
+            <form id="loginForm" class="mt-6 grid gap-4">
               <label class="grid gap-2">
-                <span class="text-sm font-semibold">Email</span>
-                <input name="email" type="email" required class="rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-teal-600 dark:border-white/10 dark:bg-white/5" placeholder="founder@innotalk.ai" />
+                <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">Email address</span>
+                <input name="email" type="email" required class="rounded-2xl border-2 border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 px-4 py-3 outline-none transition smooth-transition focus:border-teal-500 dark:focus:border-teal-400" placeholder="founder@example.com" />
               </label>
               <label class="grid gap-2">
-                <span class="text-sm font-semibold">Password</span>
-                <input name="password" type="password" minlength="8" required class="rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-teal-600 dark:border-white/10 dark:bg-white/5" placeholder="Enter your password" />
+                <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">Password</span>
+                <input name="password" type="password" minlength="8" required class="rounded-2xl border-2 border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 px-4 py-3 outline-none transition smooth-transition focus:border-teal-500 dark:focus:border-teal-400" placeholder="••••••••" />
               </label>
-              <button type="submit" class="rounded-full bg-gradient-to-r from-teal-700 to-blue-500 px-5 py-3 font-semibold text-white transition hover:-translate-y-0.5">Login to dashboard</button>
+              <button type="submit" class="mt-2 rounded-full bg-gradient-to-r from-teal-600 to-blue-600 px-5 py-3 font-bold text-white shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl active:scale-95 smooth-transition">
+                Next: Dashboard
+              </button>
             </form>
 
-            <form id="registerForm" class="mt-4 hidden gap-4">
+            <!-- Register Form -->
+            <form id="registerForm" class="mt-6 grid gap-4 hidden">
               <label class="grid gap-2">
-                <span class="text-sm font-semibold">Full name</span>
-                <input name="name" type="text" required class="rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-teal-600 dark:border-white/10 dark:bg-white/5" placeholder="Akhil Founder" />
+                <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">Your name</span>
+                <input name="name" type="text" required class="rounded-2xl border-2 border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 px-4 py-3 outline-none transition smooth-transition focus:border-teal-500 dark:focus:border-teal-400" placeholder="Akhil Founder" />
+              </label>
+              <label class="grid gap-2">
+                <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">Email address</span>
+                <input name="email" type="email" required class="rounded-2xl border-2 border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 px-4 py-3 outline-none transition smooth-transition focus:border-teal-500 dark:focus:border-teal-400" placeholder="founder@example.com" />
+              </label>
+              <label class="grid gap-2">
+                <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">Password</span>
+                <input name="password" type="password" minlength="8" required class="rounded-2xl border-2 border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 px-4 py-3 outline-none transition smooth-transition focus:border-teal-500 dark:focus:border-teal-400" placeholder="At least 8 characters" />
+              </label>
+              <label class="flex items-start gap-3">
+                <input type="checkbox" required class="mt-1 rounded-md border-2 border-slate-300 dark:border-white/20 w-5 h-5 cursor-pointer" />
+                <span class="text-xs text-slate-600 dark:text-slate-400">I agree to the terms of service and privacy policy</span>
+              </label>
+              <button type="submit" class="mt-2 rounded-full bg-gradient-to-r from-teal-600 to-blue-600 px-5 py-3 font-bold text-white shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl active:scale-95 smooth-transition">
+                Create account
+              </button>
+            </form>
+
+            <!-- Footer -->
+            <div class="mt-6 pt-6 border-t border-slate-200 dark:border-white/10">
+              <p class="text-xs text-slate-500 dark:text-slate-400 leading-5">
+                By using InnoTalk, you're joining a network of founders training to navigate the execution gap. Your data is encrypted and never shared.
+              </p>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <script src="auth.js"></script>
+  </body>
+</html>
               </label>
               <label class="grid gap-2">
                 <span class="text-sm font-semibold">Email</span>
