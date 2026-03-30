@@ -1,0 +1,9 @@
+{
+  "name": "innotalk",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix backend run dev",
+    "start": "npm --prefix backend run start"
+  }
+}

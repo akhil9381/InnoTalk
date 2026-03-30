@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>InnoTalk</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ["Manrope", "sans-serif"],
+              display: ["Space Grotesk", "sans-serif"]
+            },
+            boxShadow: {
+              panel: "0 20px 48px rgba(15, 23, 42, 0.12)"
+            }
+          }
+        }
+      };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="min-h-screen bg-slate-100 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100">
+    <div class="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(45,212,191,0.16),transparent_24%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.18),transparent_30%)]">
+      <div class="mx-auto max-w-[1600px] p-4 md:p-6">
+        <section id="authView" class="grid min-h-[calc(100vh-2rem)] gap-6 xl:grid-cols-[1.15fr_440px]">
+          <div class="rounded-[30px] border border-white/50 bg-white/80 p-8 shadow-panel backdrop-blur dark:border-white/10 dark:bg-slate-900/80 md:p-10">
+            <p class="mb-3 text-xs font-extrabold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">Execution Gap Operating System</p>
+            <h1 class="max-w-4xl font-display text-4xl leading-none md:text-6xl xl:text-7xl">
+              InnoTalk turns raw social innovation ideas into investor-ready execution simulations.
+            </h1>
+            <p class="mt-6 max-w-3xl text-base leading-8 text-slate-500 dark:text-slate-300">
+              Train founders through feasibility analysis, EVT/DVT/PVT validation, Indian compliance pressure,
+              funding intelligence, crisis rehearsal, and boardroom scrutiny inside one guided workspace.
+            </p>
+
+            <div class="mt-8 grid gap-4 md:grid-cols-3">
+              <article class="rounded-3xl border border-slate-200/80 bg-white/70 p-5 dark:border-white/10 dark:bg-white/5">
+                <p class="text-xs font-extrabold uppercase tracking-[0.26em] text-teal-700 dark:text-teal-300">Phase Intelligence</p>
+                <p class="mt-3 text-sm leading-7 text-slate-500 dark:text-slate-300">
+                  7 integrated stages from intake and stakeholder mapping to scaling and smart reporting.
+                </p>
+              </article>
+              <article class="rounded-3xl border border-slate-200/80 bg-white/70 p-5 dark:border-white/10 dark:bg-white/5">
+                <p class="text-xs font-extrabold uppercase tracking-[0.26em] text-teal-700 dark:text-teal-300">Live Metrics</p>
+                <p class="mt-3 text-sm leading-7 text-slate-500 dark:text-slate-300">
+                  Track budget, trust, impact, risk, readiness, and board score in real time.
+                </p>
+              </article>
+              <article class="rounded-3xl border border-slate-200/80 bg-white/70 p-5 dark:border-white/10 dark:bg-white/5">
+                <p class="text-xs font-extrabold uppercase tracking-[0.26em] text-teal-700 dark:text-teal-300">Founder Pressure</p>
+                <p class="mt-3 text-sm leading-7 text-slate-500 dark:text-slate-300">
+                  Simulate the valley of death with finance, tech, and community conflict before real money is on the line.
+                </p>
+              </article>
+            </div>
+          </div>
+
+          <div class="rounded-[30px] border border-white/50 bg-white/85 p-6 shadow-panel backdrop-blur dark:border-white/10 dark:bg-slate-900/85 md:p-8">
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p class="text-xs font-extrabold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">Secure Access</p>
+                <h2 class="mt-2 font-display text-3xl">Login or register</h2>
+              </div>
+              <button id="themeToggle" type="button" class="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-900 transition hover:-translate-y-0.5 dark:border-white/10 dark:bg-white/5 dark:text-slate-100">
+                Toggle theme
+              </button>
+            </div>
+
+            <div class="mt-6 flex gap-3">
+              <button id="loginTab" type="button" class="tab-button rounded-full px-4 py-2 text-sm font-semibold">Login</button>
+              <button id="registerTab" type="button" class="tab-button rounded-full px-4 py-2 text-sm font-semibold">Register</button>
+            </div>
+
+            <p id="authMessage" class="mt-4 min-h-6 text-sm text-slate-500 dark:text-slate-300"></p>
+
+            <form id="loginForm" class="mt-4 grid gap-4">
+              <label class="grid gap-2">
+                <span class="text-sm font-semibold">Email</span>
+                <input name="email" type="email" required class="rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-teal-600 dark:border-white/10 dark:bg-white/5" placeholder="founder@innotalk.ai" />
+              </label>
+              <label class="grid gap-2">
+                <span class="text-sm font-semibold">Password</span>
+                <input name="password" type="password" minlength="8" required class="rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-teal-600 dark:border-white/10 dark:bg-white/5" placeholder="Enter your password" />
+              </label>
+              <button type="submit" class="rounded-full bg-gradient-to-r from-teal-700 to-blue-500 px-5 py-3 font-semibold text-white transition hover:-translate-y-0.5">Login to dashboard</button>
+            </form>
+
+            <form id="registerForm" class="mt-4 hidden gap-4">
+              <label class="grid gap-2">
+                <span class="text-sm font-semibold">Full name</span>
+                <input name="name" type="text" required class="rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-teal-600 dark:border-white/10 dark:bg-white/5" placeholder="Akhil Founder" />
+              </label>
+              <label class="grid gap-2">
+                <span class="text-sm font-semibold">Email</span>
+                <input name="email" type="email" required class="rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-teal-600 dark:border-white/10 dark:bg-white/5" placeholder="founder@innotalk.ai" />
+              </label>
+              <label class="grid gap-2">
+                <span class="text-sm font-semibold">Password</span>
+                <input name="password" type="password" minlength="8" required class="rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-teal-600 dark:border-white/10 dark:bg-white/5" placeholder="At least 8 characters" />
+              </label>
+              <button type="submit" class="rounded-full bg-gradient-to-r from-teal-700 to-blue-500 px-5 py-3 font-semibold text-white transition hover:-translate-y-0.5">Create account</button>
+            </form>
+          </div>
+        </section>
+
+        <section id="appView" class="hidden gap-6 xl:grid xl:grid-cols-[320px_minmax(0,1fr)]">
+          <aside class="rounded-[30px] border border-white/10 bg-slate-950/85 p-5 text-slate-50 shadow-panel backdrop-blur">
+            <div class="mb-5 flex items-center gap-3">
+              <div class="grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-teal-300 to-blue-400 font-extrabold tracking-[0.2em] text-slate-950">IT</div>
+              <div>
+                <p class="text-[11px] font-extrabold uppercase tracking-[0.28em] text-slate-400">AI-native simulation engine</p>
+                <h2 class="font-display text-2xl">InnoTalk</h2>
+              </div>
+            </div>
+
+            <section class="mb-4 rounded-3xl border border-white/10 bg-white/5 p-4">
+              <div class="flex items-center justify-between gap-3">
+                <h3 class="font-semibold">Workspace</h3>
+                <button id="logoutButton" type="button" class="rounded-full bg-white/10 px-4 py-2 text-sm font-semibold transition hover:-translate-y-0.5">Logout</button>
+              </div>
+              <div class="mt-4 space-y-2">
+                <p class="text-[11px] font-extrabold uppercase tracking-[0.28em] text-slate-400">Founder</p>
+                <h4 id="founderName" class="text-lg font-semibold">User</h4>
+                <p id="founderEmail" class="text-sm text-slate-400"></p>
+              </div>
+              <div class="mt-5 space-y-3">
+                <div>
+                  <p class="text-[11px] font-extrabold uppercase tracking-[0.28em] text-slate-400">Current stage</p>
+                  <p id="currentStageName" class="mt-1 font-semibold">Phase 1</p>
+                </div>
+                <div>
+                  <p class="text-[11px] font-extrabold uppercase tracking-[0.28em] text-slate-400">Verdict</p>
+                  <span id="verdictPill" class="mt-2 inline-flex rounded-full bg-teal-400/15 px-3 py-2 text-sm font-bold text-teal-200">Calibrating</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="mb-4 rounded-3xl border border-white/10 bg-white/5 p-4">
+              <div class="flex items-center justify-between gap-3">
+                <h3 class="font-semibold">Module progress</h3>
+                <span id="progressValue" class="text-sm font-bold text-slate-300">1 / 7</span>
+              </div>
+              <div id="phaseList" class="mt-4 grid gap-3"></div>
+            </section>
+
+            <section class="rounded-3xl border border-white/10 bg-white/5 p-4">
+              <h3 class="font-semibold">Session history</h3>
+              <div id="historyList" class="mt-4 grid gap-3"></div>
+            </section>
+          </aside>
+
+          <main class="pt-6 xl:pt-0">
+            <header class="rounded-[30px] border border-white/50 bg-white/80 p-7 shadow-panel backdrop-blur dark:border-white/10 dark:bg-slate-900/85">
+              <div class="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+                <div>
+                  <p class="text-xs font-extrabold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">Simulation cockpit</p>
+                  <h2 class="mt-2 max-w-5xl font-display text-4xl leading-none md:text-6xl">
+                    Build a founder-grade execution narrative before the market tests it for real.
+                  </h2>
+                  <p class="mt-4 max-w-4xl text-base leading-8 text-slate-500 dark:text-slate-300">
+                    Navigate feasibility, compliance, funding, promotion, crisis, and investor scrutiny in one staged workspace.
+                  </p>
+                </div>
+                <div class="flex flex-wrap gap-3">
+                  <button id="advanceButton" type="button" class="rounded-full bg-gradient-to-r from-teal-700 to-blue-500 px-5 py-3 font-semibold text-white transition hover:-translate-y-0.5">Advance simulation</button>
+                  <button id="resetButton" type="button" class="rounded-full border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-900 transition hover:-translate-y-0.5 dark:border-white/10 dark:bg-white/5 dark:text-slate-100">Reset session</button>
+                  <button id="exportButton" type="button" class="rounded-full border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-900 transition hover:-translate-y-0.5 dark:border-white/10 dark:bg-white/5 dark:text-slate-100">Export brief</button>
+                </div>
+              </div>
+            </header>
+
+            <p id="appMessage" class="mt-4 min-h-6 text-sm text-slate-500 dark:text-slate-300"></p>
+            <section id="statsGrid" class="mt-4 grid gap-4 md:grid-cols-2 2xl:grid-cols-5"></section>
+            <section class="mt-4 grid grid-cols-12 gap-4">
+              <article class="col-span-12 rounded-[26px] border border-white/50 bg-white/80 p-6 shadow-panel backdrop-blur dark:border-white/10 dark:bg-slate-900/85 xl:col-span-7">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <p class="text-xs font-extrabold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">Live module</p>
+                    <h3 id="stageTitle" class="mt-2 font-display text-3xl"></h3>
+                  </div>
+                  <span id="stageType" class="inline-flex rounded-full bg-teal-700/10 px-4 py-2 text-sm font-bold text-teal-700 dark:text-teal-300"></span>
+                </div>
+                <p id="stageSummary" class="mt-4 text-base leading-8 text-slate-500 dark:text-slate-300"></p>
+                <div class="mt-6">
+                  <h4 class="font-semibold">Primary output</h4>
+                  <div id="stageOutputs" class="mt-3 flex flex-wrap gap-2"></div>
+                </div>
+                <div class="mt-6">
+                  <h4 class="font-semibold">Operational focus</h4>
+                  <ul id="stageTasks" class="mt-3 list-disc space-y-2 pl-5 text-sm leading-7 text-slate-500 dark:text-slate-300"></ul>
+                </div>
+                <div class="mt-6 rounded-3xl bg-teal-700/10 p-4 dark:bg-teal-300/10">
+                  <h4 class="font-semibold">Engine notes</h4>
+                  <p id="stageInsight" class="mt-2 text-sm leading-7 text-slate-500 dark:text-slate-300"></p>
+                </div>
+              </article>
+
+              <article class="col-span-12 rounded-[26px] border border-white/50 bg-white/80 p-6 shadow-panel backdrop-blur dark:border-white/10 dark:bg-slate-900/85 xl:col-span-5">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <p class="text-xs font-extrabold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">Decision intelligence</p>
+                    <h3 class="mt-2 font-display text-3xl">Market + funding cockpit</h3>
+                  </div>
+                  <span class="inline-flex rounded-full bg-blue-600/10 px-4 py-2 text-sm font-bold text-blue-700 dark:text-blue-300">2026 ready</span>
+                </div>
+                <div class="mt-5 grid gap-5 lg:grid-cols-2">
+                  <section>
+                    <h4 class="font-semibold">Investor trendline</h4>
+                    <p id="trendSummary" class="mt-2 text-sm leading-7 text-slate-500 dark:text-slate-300"></p>
+                  </section>
+                  <section>
+                    <h4 class="font-semibold">Funding matches</h4>
+                    <div id="fundingMatches" class="mt-3 flex flex-wrap gap-2"></div>
+                  </section>
+                </div>
+                <div class="mt-5 rounded-3xl bg-teal-700/10 p-4 dark:bg-teal-300/10">
+                  <p class="text-xs font-extrabold uppercase tracking-[0.28em] text-slate-500 dark:text-slate-400">Strategic recommendation</p>
+                  <p id="decisionCallout" class="mt-2 font-semibold"></p>
+                </div>
+              </article>
+
+              <article class="col-span-12 rounded-[26px] border border-white/50 bg-white/80 p-6 shadow-panel backdrop-blur dark:border-white/10 dark:bg-slate-900/85 xl:col-span-6">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <p class="text-xs font-extrabold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">Pressure simulation</p>
+                    <h3 class="mt-2 font-display text-3xl">Dynamic Crisis Engine</h3>
+                  </div>
+                  <span id="crisisBadge" class="inline-flex rounded-full bg-teal-700/10 px-4 py-2 text-sm font-bold text-teal-700 dark:text-teal-300"></span>
+                </div>
+                <p id="crisisIntro" class="mt-4 text-sm leading-7 text-slate-500 dark:text-slate-300"></p>
+                <div id="crisisVoices" class="mt-4 grid gap-3"></div>
+              </article>
+
+              <article class="col-span-12 rounded-[26px] border border-white/50 bg-white/80 p-6 shadow-panel backdrop-blur dark:border-white/10 dark:bg-slate-900/85 xl:col-span-6">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <p class="text-xs font-extrabold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">Final boardroom</p>
+                    <h3 class="mt-2 font-display text-3xl">Investor pitch gauntlet</h3>
+                  </div>
+                  <span id="boardScore" class="inline-flex rounded-full bg-teal-700/10 px-4 py-2 text-sm font-bold text-teal-700 dark:text-teal-300">0.0 / 10</span>
+                </div>
+                <div id="boardQuestions" class="mt-4 grid gap-3"></div>
+                <div class="mt-4 rounded-3xl bg-teal-700/10 p-4 dark:bg-teal-300/10">
+                  <p id="boardFeedback" class="text-sm leading-7 text-slate-500 dark:text-slate-300"></p>
+                </div>
+              </article>
+
+              <article class="col-span-12 rounded-[26px] border border-white/50 bg-white/80 p-6 shadow-panel backdrop-blur dark:border-white/10 dark:bg-slate-900/85">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <p class="text-xs font-extrabold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">Post-simulation intelligence</p>
+                    <h3 class="mt-2 font-display text-3xl">Smart report</h3>
+                  </div>
+                  <span id="readinessBadge" class="inline-flex rounded-full bg-teal-700/10 px-4 py-2 text-sm font-bold text-teal-700 dark:text-teal-300"></span>
+                </div>
+                <div class="mt-5 grid gap-5 xl:grid-cols-3">
+                  <section>
+                    <h4 class="font-semibold">Business architecture</h4>
+                    <p id="reportArchitecture" class="mt-2 text-sm leading-7 text-slate-500 dark:text-slate-300"></p>
+                  </section>
+                  <section>
+                    <h4 class="font-semibold">Mistake analysis</h4>
+                    <p id="reportMistakes" class="mt-2 text-sm leading-7 text-slate-500 dark:text-slate-300"></p>
+                  </section>
+                  <section>
+                    <h4 class="font-semibold">2026 roadmap</h4>
+                    <p id="reportRoadmap" class="mt-2 text-sm leading-7 text-slate-500 dark:text-slate-300"></p>
+                  </section>
+                </div>
+              </article>
+            </section>
+          </main>
+        </section>
+      </div>
+    </div>
+
+    <template id="phaseItemTemplate">
+      <button type="button" class="phase-item grid w-full grid-cols-[44px_1fr] gap-3 rounded-2xl bg-white/5 p-3 text-left transition hover:-translate-y-0.5">
+        <span class="phase-step grid h-11 w-11 place-items-center rounded-2xl bg-white/10 font-extrabold"></span>
+        <span class="grid gap-1">
+          <strong class="phase-title text-sm"></strong>
+          <span class="phase-subtitle text-xs text-slate-400"></span>
+        </span>
+      </button>
+    </template>
+
+    <template id="historyItemTemplate">
+      <article class="rounded-2xl bg-white/5 p-3">
+        <p class="history-time text-xs text-slate-400"></p>
+        <h4 class="history-title mt-1 text-sm font-semibold"></h4>
+        <p class="history-body mt-1 text-xs leading-6 text-slate-300"></p>
+      </article>
+    </template>
+
+    <template id="voiceTemplate">
+      <article class="rounded-3xl bg-slate-200/60 p-4 dark:bg-white/5">
+        <div class="flex items-center justify-between gap-3">
+          <strong class="voice-role"></strong>
+          <span class="voice-stance rounded-full bg-blue-600/10 px-3 py-1 text-xs font-bold text-blue-700 dark:text-blue-300"></span>
+        </div>
+        <p class="voice-copy mt-3 text-sm leading-7 text-slate-500 dark:text-slate-300"></p>
+      </article>
+    </template>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
