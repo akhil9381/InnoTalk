@@ -4,12 +4,74 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>InnoTalk</title>
-    <script>
-        // Redirect to login page
-        window.location.href = "login.html";
-    </script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #fff;
+        }
+        .container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 90%;
+        }
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #fff;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        p {
+            font-size: 1.2em;
+            margin: 0 0 20px 0;
+        }
+        a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 1em;
+            border: 1px solid #fff;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: background 0.3s;
+            display: none;
+        }
+        a:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+    </style>
 </head>
 <body>
-    <p>Redirecting to login...</p>
+    <div class="container">
+        <div class="spinner"></div>
+        <p>Redirecting to login...</p>
+        <a href="login.html" id="fallback">Click here if not redirected</a>
+    </div>
+    <script>
+        // Delay redirect by 2 seconds
+        setTimeout(() => {
+            window.location.href = "login.html";
+        }, 2000);
+        // Show fallback link after 3 seconds in case redirect fails
+        setTimeout(() => {
+            document.getElementById('fallback').style.display = 'inline-block';
+        }, 3000);
+    </script>
 </body>
 </html>
