@@ -90,10 +90,10 @@ function createTag(text) {
 }
 
 function getVerdictClasses(label) {
-  if (label === "Go") return "bg-emerald-500/15 text-emerald-600 dark:text-emerald-300";
-  if (label === "Conditional") return "bg-amber-500/15 text-amber-600 dark:text-amber-300";
-  if (label === "No-Go") return "bg-red-500/15 text-red-600 dark:text-red-300";
-  return "bg-teal-700/10 text-teal-700 dark:text-teal-300";
+  if (label === "Go") return "bg-emerald-100 text-emerald-700 dark:bg-emerald-400/20 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-400/30";
+  if (label === "Conditional") return "bg-amber-100 text-amber-700 dark:bg-amber-400/20 dark:text-amber-300 border border-amber-300 dark:border-amber-400/30";
+  if (label === "No-Go") return "bg-red-100 text-red-700 dark:bg-red-400/20 dark:text-red-300 border border-red-300 dark:border-red-400/30";
+  return "bg-teal-100 text-teal-700 dark:bg-teal-400/20 dark:text-teal-300 border border-teal-300 dark:border-teal-400/30";
 }
 
 function renderAuthState() {
@@ -107,23 +107,23 @@ function renderAuthState() {
 function renderStats() {
   const simulation = getSimulation();
   const metrics = [
-    ["Budget", simulation.budget, "Current deployment runway across the active venture simulation."],
-    ["Trust", simulation.trust, "Confidence from communities, partners, and institutional stakeholders."],
-    ["Impact", simulation.impact, "Expected measurable value produced by the solution pathway."],
-    ["Risk", simulation.risk, "Lower is better. Tracks strategic, product, and compliance uncertainty."],
-    ["Readiness", simulation.readiness, "Composite execution readiness for investors and grant evaluators."]
+    ["Budget", simulation.budget, "Deployment runway"],
+    ["Trust", simulation.trust, "Stakeholder confidence"],
+    ["Impact", simulation.impact, "Expected outcome value"],
+    ["Risk", simulation.risk, "Uncertainty level"],
+    ["Readiness", simulation.readiness, "Execution readiness"]
   ];
 
   els.statsGrid.innerHTML = "";
   metrics.forEach(([label, value, copy]) => {
     const node = document.createElement("article");
-    node.className = "rounded-[26px] border border-white/50 bg-white/80 p-5 shadow-panel backdrop-blur dark:border-white/10 dark:bg-slate-900/85";
+    node.className = "stat-card";
     node.innerHTML = `
-      <p class="text-xs font-extrabold uppercase tracking-[0.28em] text-slate-500 dark:text-slate-400">${label}</p>
-      <strong class="mt-3 block text-4xl font-extrabold">${value}%</strong>
-      <p class="mt-3 text-sm leading-7 text-slate-500 dark:text-slate-300">${copy}</p>
-      <div class="mt-4 h-2.5 overflow-hidden rounded-full bg-slate-200 dark:bg-white/10">
-        <span class="block h-full rounded-full bg-gradient-to-r from-teal-600 to-sky-400" style="width:${value}%"></span>
+      <p class="stat-label">${label}</p>
+      <div class="stat-value">${value}%</div>
+      <p class="mt-2 text-xs text-slate-600 dark:text-slate-400">${copy}</p>
+      <div class="mt-3 h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-white/10">
+        <span class="block h-full rounded-full bg-gradient-to-r from-teal-500 to-blue-500" style="width:${value}%"></span>
       </div>
     `;
     els.statsGrid.appendChild(node);
@@ -187,7 +187,7 @@ function renderStage() {
   els.currentStageName.textContent = phase.shortLabel;
   els.progressValue.textContent = `${simulation.activePhaseIndex + 1} / ${state.app.phases.length}`;
   els.verdictPill.textContent = simulation.verdict;
-  els.verdictPill.className = `mt-2 inline-flex rounded-full px-3 py-2 text-sm font-bold ${getVerdictClasses(simulation.verdict)}`;
+  els.verdictPill.className = `inline-flex rounded-full px-3 py-1 text-xs font-bold border ${getVerdictClasses(simulation.verdict)}`;
   els.stageTitle.textContent = phase.title;
   els.stageType.textContent = phase.type;
   els.stageSummary.textContent = phase.summary;
@@ -198,7 +198,8 @@ function renderStage() {
   els.stageTasks.innerHTML = "";
   phase.tasks.forEach((task) => {
     const li = document.createElement("li");
-    li.textContent = task;
+    li.className = "flex items-start gap-3 text-sm leading-6 text-slate-600 dark:text-slate-300";
+    li.innerHTML = `<span class="mt-0.5 text-teal-500 font-bold">✓</span><span>${task}</span>`;
     els.stageTasks.appendChild(li);
   });
 
@@ -218,7 +219,7 @@ function renderIntelligence() {
 function renderCrisis() {
   const crisis = getSimulation().crisis;
   els.crisisBadge.textContent = crisis.level.toUpperCase();
-  els.crisisBadge.className = `inline-flex rounded-full px-4 py-2 text-sm font-bold ${crisis.level === "critical" ? "bg-red-500/15 text-red-600 dark:text-red-300" : crisis.level === "elevated" ? "bg-amber-500/15 text-amber-600 dark:text-amber-300" : "bg-teal-700/10 text-teal-700 dark:text-teal-300"}`;
+  els.crisisBadge.className = `inline-flex rounded-full px-4 py-2 text-sm font-bold border ${crisis.level === "critical" ? "bg-red-100 text-red-700 dark:bg-red-400/20 dark:text-red-300 border-red-300 dark:border-red-400/30" : crisis.level === "elevated" ? "bg-amber-100 text-amber-700 dark:bg-amber-400/20 dark:text-amber-300 border-amber-300 dark:border-amber-400/30" : "bg-teal-100 text-teal-700 dark:bg-teal-400/20 dark:text-teal-300 border-teal-300 dark:border-teal-400/30"}`;
   els.crisisIntro.textContent = crisis.intro;
   els.crisisVoices.innerHTML = "";
 
@@ -238,7 +239,7 @@ function renderBoardroom() {
   els.boardQuestions.innerHTML = "";
   boardroom.questions.forEach((question) => {
     const item = document.createElement("div");
-    item.className = "rounded-3xl bg-slate-200/60 p-4 text-sm leading-7 dark:bg-white/5";
+    item.className = "rounded-2xl border border-purple-200 dark:border-purple-400/20 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-400/10 dark:to-pink-400/10 p-4 text-sm leading-7 text-purple-900 dark:text-purple-100";
     item.textContent = question;
     els.boardQuestions.appendChild(item);
   });

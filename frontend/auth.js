@@ -23,8 +23,8 @@ function setTheme(theme) {
 
 function setAuthMode(mode) {
   state.authMode = mode;
-  els.loginTab.className = `tab-button rounded-full px-4 py-2 text-sm font-semibold ${mode === "login" ? "bg-teal-700/10 text-teal-700 dark:text-teal-300" : "bg-slate-200 text-slate-600 dark:bg-white/5 dark:text-slate-300"}`;
-  els.registerTab.className = `tab-button rounded-full px-4 py-2 text-sm font-semibold ${mode === "register" ? "bg-teal-700/10 text-teal-700 dark:text-teal-300" : "bg-slate-200 text-slate-600 dark:bg-white/5 dark:text-slate-300"}`;
+  els.loginTab.className = `tab-button flex-1 rounded-full px-4 py-2 text-sm font-bold transition smooth-transition ${mode === "login" ? "bg-teal-600 text-white" : "bg-transparent text-slate-600 dark:text-slate-300"}`;
+  els.registerTab.className = `tab-button flex-1 rounded-full px-4 py-2 text-sm font-bold transition smooth-transition ${mode === "register" ? "bg-teal-600 text-white" : "bg-transparent text-slate-600 dark:text-slate-300"}`;
   els.loginForm.classList.toggle("hidden", mode !== "login");
   els.loginForm.classList.toggle("grid", mode === "login");
   els.registerForm.classList.toggle("hidden", mode !== "register");
