@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const CTASection = () => {
   return (
@@ -14,17 +15,21 @@ const CTASection = () => {
           className="max-w-3xl mx-auto text-center"
         >
           <h2 className="font-heading text-3xl md:text-5xl font-bold mb-6">
-            Ready to <span className="text-gradient-primary">Stress-Test</span> Your Idea?
+            Ready to <span className="text-gradient-primary">Validate</span> Your Social Innovation?
           </h2>
           <p className="text-muted-foreground text-lg mb-10 max-w-xl mx-auto">
-            Join founders who've eliminated blindspots, impressed investors, and built with conviction — not hope.
+            Join mission-driven founders building stronger solutions for communities, institutions, and underserved markets.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button variant="hero" size="lg" className="text-base px-10">
-              Start Free Simulation <ArrowRight className="w-4 h-4 ml-1" />
+            <Button variant="hero" size="lg" className="text-base px-10" asChild>
+              <Link to="/simulation">
+              Start Impact Simulation <ArrowRight className="w-4 h-4 ml-1" />
+              </Link>
             </Button>
-            <Button variant="hero-outline" size="lg" className="text-base px-10">
-              View Sample Report
+            <Button variant="hero-outline" size="lg" className="text-base px-10" asChild>
+              <Link to="/results">
+              View Impact Report
+              </Link>
             </Button>
           </div>
         </motion.div>

@@ -1,20 +1,17 @@
 import { motion } from "framer-motion";
 import { 
-  Search, AlertTriangle, Users, Lightbulb, DollarSign, 
-  Rocket, ShieldAlert, FileText, Presentation 
+  Users, Lightbulb, DollarSign, Rocket, ShieldAlert, FileText, Presentation 
 } from "lucide-react";
 
 const phases = [
-  { phase: "0", name: "Market Confrontation", desc: "Live market grounding + VC Auditor challenge", icon: Search, color: "text-primary" },
-  { phase: "0.5", name: "Bias Calibration", desc: "Founder mindset assessment + bias baseline", icon: AlertTriangle, color: "text-accent" },
-  { phase: "1", name: "Problem Validation", desc: "Socratic interrogation of core problem", icon: Lightbulb, color: "text-primary" },
-  { phase: "2", name: "Customer Discovery", desc: "Persona stress test & market sizing", icon: Users, color: "text-accent" },
-  { phase: "3", name: "Solution Architecture", desc: "Technical feasibility & MVP scoping", icon: Lightbulb, color: "text-primary" },
-  { phase: "4", name: "Business Model", desc: "Revenue model & unit economics", icon: DollarSign, color: "text-accent" },
-  { phase: "5", name: "Go-to-Market", desc: "Distribution & launch strategy", icon: Rocket, color: "text-primary" },
-  { phase: "6", name: "Risk & Resilience", desc: "Regulatory & operational risk mapping", icon: ShieldAlert, color: "text-accent" },
-  { phase: "7", name: "Smart Report", desc: "Synthesis & artifact generation", icon: FileText, color: "text-primary" },
-  { phase: "7.5", name: "Investor Panel", desc: "Live AI investor Q&A simulation", icon: Presentation, color: "text-accent" },
+  { phase: "1", name: "Problem Validation", desc: "Interrogate the social problem, urgency, and root causes", icon: Lightbulb, color: "text-primary" },
+  { phase: "2", name: "Community Discovery", desc: "Stress-test beneficiary needs, trust, and market adoption realities", icon: Users, color: "text-accent" },
+  { phase: "3", name: "Solution Architecture", desc: "Test whether the solution works under real field constraints and limited resources", icon: Lightbulb, color: "text-primary" },
+  { phase: "4", name: "Impact Model", desc: "Validate sustainability, affordability, and mission-aligned unit economics", icon: DollarSign, color: "text-accent" },
+  { phase: "5", name: "Implementation Path", desc: "Design partnerships, stakeholder navigation, and go-to-market rollout strategy", icon: Rocket, color: "text-primary" },
+  { phase: "6", name: "Risk and Resilience", desc: "Map policy, operational, and community trust risks", icon: ShieldAlert, color: "text-accent" },
+  { phase: "7", name: "Impact Report", desc: "Generate synthesis, evidence, and market-readiness artifacts", icon: FileText, color: "text-primary" },
+  { phase: "8", name: "Funder Panel", desc: "Defend launch readiness with grant, CSR, and impact capital perspectives", icon: Presentation, color: "text-accent" },
 ];
 
 const PhasesSection = () => {
@@ -32,7 +29,7 @@ const PhasesSection = () => {
             The <span className="text-gradient-primary">8-Phase</span> Gauntlet
           </h2>
           <p className="text-muted-foreground max-w-xl mx-auto">
-            Each phase escalates in adversarial intensity. No shortcuts. No hand-holding.
+            Each phase tests whether a social startup can solve the real market-entry problems shown in this platform: management pressure, scarce resources, stakeholder complexity, and sustainable impact delivery.
           </p>
         </motion.div>
 

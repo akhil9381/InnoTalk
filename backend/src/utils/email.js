@@ -1,9 +1,21 @@
 const nodemailer = require('nodemailer');
 const logger = require('./logger');
 
+const isEmailConfigured = () =>
+  Boolean(
+    process.env.SMTP_HOST &&
+    process.env.SMTP_PORT &&
+    process.env.SMTP_USER &&
+    process.env.SMTP_PASS
+  );
+
 // Create email transporter
 const createTransporter = () => {
-  return nodemailer.createTransporter({
+  if (!isEmailConfigured()) {
+    return null;
+  }
+
+  return nodemailer.createTransport({
     host: process.env.SMTP_HOST,
     port: parseInt(process.env.SMTP_PORT) || 587,
     secure: false, // true for 465, false for other ports
@@ -18,6 +30,15 @@ const createTransporter = () => {
 const sendEmail = async (to, subject, html, text) => {
   try {
     const transporter = createTransporter();
+
+    if (!transporter) {
+      logger.warn(`Email delivery skipped for ${to} because SMTP is not configured`);
+      return {
+        skipped: true,
+        delivered: false,
+        reason: 'SMTP is not configured',
+      };
+    }
     
     const mailOptions = {
       from: `"InnoTalk" <${process.env.SMTP_USER}>`,
@@ -29,7 +50,12 @@ const sendEmail = async (to, subject, html, text) => {
 
     const info = await transporter.sendMail(mailOptions);
     logger.info(`Email sent successfully to ${to}: ${info.messageId}`);
-    return info;
+    return {
+      skipped: false,
+      delivered: true,
+      messageId: info.messageId,
+      response: info.response,
+    };
   } catch (error) {
     logger.error('Failed to send email:', error);
     throw error;
@@ -278,6 +304,7 @@ const sendWelcomeEmail = async (email, firstName = '') => {
 };
 
 module.exports = {
+  isEmailConfigured,
   sendEmail,
   sendVerificationEmail,
   sendPasswordResetEmail,

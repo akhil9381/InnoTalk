@@ -19,7 +19,7 @@ The backend API for InnoTalk Socratic Venture Sandbox - an AI-native platform th
 - MongoDB 4.4 or higher
 - Redis 6.0 or higher
 - Google Search API key
-- Anthropic API key (Claude)
+- Gemini API key
 - OpenAI API key (optional)
 
 ## 🛠️ Installation
@@ -58,8 +58,7 @@ The backend API for InnoTalk Socratic Venture Sandbox - an AI-native platform th
    JWT_REFRESH_EXPIRES_IN=30d
 
    # AI Services
-   ANTHROPIC_API_KEY=your-anthropic-api-key
-   OPENAI_API_KEY=your-openai-api-key
+   GEMINI_API_KEY=your-gemini-api-key
    GOOGLE_SEARCH_API_KEY=your-google-search-api-key
    GOOGLE_SEARCH_ENGINE_ID=your-google-search-engine-id
 
@@ -356,7 +355,7 @@ Authorization: Bearer <access-token>
 | `MONGODB_URI` | MongoDB connection string | Yes |
 | `REDIS_URL` | Redis connection string | Yes |
 | `JWT_SECRET` | JWT secret key | Yes |
-| `ANTHROPIC_API_KEY` | Anthropic API key | Yes |
+| `GEMINI_API_KEY` | Gemini API key | Yes |
 | `GOOGLE_SEARCH_API_KEY` | Google Search API key | Yes |
 | `GOOGLE_SEARCH_ENGINE_ID` | Google Search Engine ID | Yes |
 | `SMTP_HOST` | Email SMTP host | Yes |
@@ -458,7 +457,7 @@ For support and questions, please contact the development team.
 ## 🔗 Integration APIs
 
 - **Google Search API**: Market data grounding
-- **Anthropic Claude**: AI agent responses
+- **Google Gemini**: AI agent responses
 - **T-Hub API**: Incubator resources
 - **T-Works API**: Hardware resources
 - **Startup India API**: Grant information

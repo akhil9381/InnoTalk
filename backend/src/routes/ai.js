@@ -1,6 +1,7 @@
 const express = require('express');
 const Joi = require('joi');
 const aiAgentService = require('../services/aiAgents');
+const geminiService = require('../services/geminiService');
 const { authenticate, requireSubscription } = require('../middleware/auth');
 const logger = require('../utils/logger');
 
@@ -59,6 +60,35 @@ const evaluationSchema = Joi.object({
   context: Joi.object({
     phase: Joi.number().min(0).max(7.5),
   }).optional(),
+});
+
+const evaluationQuestionSchema = Joi.object({
+  phase: Joi.object({
+    id: Joi.number().required(),
+    name: Joi.string().required(),
+    prompt: Joi.string().required(),
+    guidance: Joi.string().required(),
+    dimensions: Joi.array().items(Joi.string()).default([]),
+  }).required(),
+  startupProfile: Joi.object({
+    startupName: Joi.string().allow('').default(''),
+    sector: Joi.string().allow('').default(''),
+    geography: Joi.string().allow('').default(''),
+    mission: Joi.string().allow('').default(''),
+    beneficiaries: Joi.string().allow('').default(''),
+    solutionApproach: Joi.string().allow('').default(''),
+    model: Joi.string().allow('').default(''),
+    stage: Joi.string().allow('').default(''),
+  }).required(),
+  previousResponses: Joi.array().items(
+    Joi.object({
+      phaseId: Joi.number(),
+      phaseName: Joi.string(),
+      answer: Joi.string().allow(''),
+      score: Joi.number(),
+      feedback: Joi.string().allow(''),
+    })
+  ).default([]),
 });
 
 // Get single agent response
@@ -160,6 +190,32 @@ router.post('/evaluate', authenticate, async (req, res) => {
     logger.error('Error evaluating response:', error);
     res.status(500).json({
       error: 'Failed to evaluate response',
+      message: error.message,
+    });
+  }
+});
+
+// Generate a market-readiness evaluation question with Gemini
+router.post('/evaluation-question', async (req, res) => {
+  try {
+    const { error, value } = evaluationQuestionSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({
+        error: 'Validation failed',
+        details: error.details.map(d => d.message),
+      });
+    }
+
+    const question = await geminiService.generateEvaluationQuestion(value);
+
+    res.json({
+      success: true,
+      data: question,
+    });
+  } catch (error) {
+    logger.error('Error generating evaluation question:', error);
+    res.status(500).json({
+      error: 'Failed to generate evaluation question',
       message: error.message,
     });
   }

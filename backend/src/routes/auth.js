@@ -3,7 +3,7 @@ const Joi = require('joi');
 const User = require('../models/User');
 const { generateTokens, authenticate, verifyRefreshToken, loginRateLimit, registerRateLimit } = require('../middleware/auth');
 const logger = require('../utils/logger');
-const { sendVerificationEmail, sendPasswordResetEmail } = require('../utils/email');
+const { isEmailConfigured, sendVerificationEmail, sendPasswordResetEmail } = require('../utils/email');
 
 const router = express.Router();
 
@@ -95,8 +95,10 @@ router.post('/register', registerRateLimit, async (req, res) => {
     await user.save();
 
     // Send verification email
+    let verificationEmailSent = false;
     try {
-      await sendVerificationEmail(user.email, verificationToken);
+      const emailResult = await sendVerificationEmail(user.email, verificationToken);
+      verificationEmailSent = Boolean(emailResult?.delivered);
     } catch (emailError) {
       logger.error('Failed to send verification email:', emailError);
       // Don't fail registration if email fails
@@ -108,11 +110,21 @@ router.post('/register', registerRateLimit, async (req, res) => {
     logger.info(`New user registered: ${email}`);
 
     res.status(201).json({
-      message: 'User registered successfully. Please check your email for verification.',
+      message: verificationEmailSent
+        ? 'User registered successfully. Please check your email for verification.'
+        : 'User registered successfully. Email verification is currently disabled in this environment.',
       user: user.toSafeObject(),
       tokens: {
         accessToken,
         refreshToken,
+      },
+      email: {
+        enabled: isEmailConfigured(),
+        verificationSent: verificationEmailSent,
+        verificationRequired: true,
+        ...(process.env.NODE_ENV !== 'production' && !verificationEmailSent
+          ? { verificationToken }
+          : {}),
       },
     });
   } catch (error) {
@@ -288,12 +300,21 @@ router.post('/resend-verification', authenticate, async (req, res) => {
     req.user.security.emailVerificationToken = verificationToken;
     await req.user.save();
 
-    await sendVerificationEmail(req.user.email, verificationToken);
+    const emailResult = await sendVerificationEmail(req.user.email, verificationToken);
 
     logger.info(`Verification email resent to: ${req.user.email}`);
 
     res.json({
-      message: 'Verification email sent successfully',
+      message: emailResult?.delivered
+        ? 'Verification email sent successfully'
+        : 'Email delivery is disabled in this environment',
+      email: {
+        enabled: isEmailConfigured(),
+        verificationSent: Boolean(emailResult?.delivered),
+        ...(process.env.NODE_ENV !== 'production' && !emailResult?.delivered
+          ? { verificationToken }
+          : {}),
+      },
     });
   } catch (error) {
     logger.error('Resend verification error:', error);
@@ -331,12 +352,21 @@ router.post('/forgot-password', async (req, res) => {
     user.security.passwordResetExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
     await user.save();
 
-    await sendPasswordResetEmail(user.email, resetToken);
+    const emailResult = await sendPasswordResetEmail(user.email, resetToken);
 
     logger.info(`Password reset email sent to: ${email}`);
 
     res.json({
-      message: 'If an account with this email exists, a password reset link has been sent',
+      message: emailResult?.delivered
+        ? 'If an account with this email exists, a password reset link has been sent'
+        : 'Password reset email delivery is disabled in this environment',
+      email: {
+        enabled: isEmailConfigured(),
+        passwordResetSent: Boolean(emailResult?.delivered),
+        ...(process.env.NODE_ENV !== 'production' && !emailResult?.delivered
+          ? { resetToken }
+          : {}),
+      },
     });
   } catch (error) {
     logger.error('Forgot password error:', error);

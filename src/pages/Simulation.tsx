@@ -1,200 +1,638 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import Navbar from "@/components/Navbar";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { 
-  Send, Bot, User, AlertTriangle, TrendingUp, 
-  DollarSign, Users, Cpu, MessageSquare, Lightbulb
+import { useEvaluation } from "@/context/EvaluationContext";
+import {
+  evaluationPhases,
+  getDimensionLabel,
+  type ReadinessDimension,
+  type StartupProfile,
+} from "@/lib/evaluation";
+import { fetchEvaluationQuestion, type EvaluationQuestionResponse } from "@/lib/api";
+import {
+  AlertTriangle,
+  ArrowRight,
+  Bot,
+  Brain,
+  CheckCircle2,
+  FileText,
+  Lightbulb,
+  MessageSquare,
+  RotateCcw,
+  Send,
+  Target,
 } from "lucide-react";
 
-const agents = [
-  { name: "VC Auditor", role: "Adversarial Challenger", icon: AlertTriangle, color: "text-destructive" },
-  { name: "Finance Head", role: "Financial Scrutiny", icon: DollarSign, color: "text-accent" },
-  { name: "Tech Lead", role: "Technical Feasibility", icon: Cpu, color: "text-primary" },
-  { name: "Community Lead", role: "Market Viability", icon: Users, color: "text-primary" },
-];
-
-const phases = [
-  { id: 0, name: "Market Confrontation", complete: true },
-  { id: 0.5, name: "Bias Calibration", complete: true },
-  { id: 1, name: "Problem Validation", complete: true },
-  { id: 2, name: "Customer Discovery", active: true },
-  { id: 3, name: "Solution Architecture" },
-  { id: 4, name: "Business Model" },
-  { id: 5, name: "Go-to-Market" },
-  { id: 6, name: "Risk & Resilience" },
-  { id: 7, name: "Smart Report" },
-  { id: 7.5, name: "Investor Panel" },
-];
-
-const sampleMessages = [
-  { role: "agent", agent: "VC Auditor", content: "You claim your target market is 'all small businesses.' That's not a market — that's a fantasy. Who specifically is your day-one customer, and why would they switch from their current solution?" },
-  { role: "user", content: "We're targeting food delivery restaurants in Tier-2 cities in India that currently manage orders via WhatsApp and phone calls. They have no POS system and lose 15-20% of orders due to miscommunication." },
-  { role: "agent", agent: "Finance Head", content: "Interesting niche. But 'Tier-2 food delivery restaurants' — what's your TAM? And more critically, what's the average revenue per restaurant? If it's under ₹2L/month, your unit economics might not support a SaaS model." },
-  { role: "agent", agent: "Tech Lead", content: "Building a POS replacement means you need to handle offline mode, local printing, and payment integrations. What's your technical team's experience with embedded systems and payment gateways?" },
-];
+const initialProfile: StartupProfile = {
+  startupName: "",
+  sector: "",
+  geography: "",
+  mission: "",
+  beneficiaries: "",
+  solutionApproach: "",
+  model: "",
+  stage: "",
+};
 
 const Simulation = () => {
-  const [input, setInput] = useState("");
-  const [messages] = useState(sampleMessages);
+  const {
+    currentSession,
+    startSession,
+    submitPhaseAnswer,
+    revisePreviousPhase,
+    resetCurrentSession,
+  } = useEvaluation();
+  const [profile, setProfile] = useState<StartupProfile>(initialProfile);
+  const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
+  const [otherAnswer, setOtherAnswer] = useState("");
+  const [generatedQuestion, setGeneratedQuestion] = useState<EvaluationQuestionResponse | null>(null);
+  const [questionStatus, setQuestionStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
+
+  const activePhase =
+    currentSession && currentSession.status !== "completed"
+      ? evaluationPhases[currentSession.currentPhaseIndex]
+      : null;
+
+  const completedPhases = currentSession?.responses.length ?? 0;
+  const progress = Math.round((completedPhases / evaluationPhases.length) * 100);
+
+  const canStartSession = Object.values(profile).every((value) => value.trim().length > 0);
+  const latestResponse = currentSession?.responses[currentSession.responses.length - 1] ?? null;
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadQuestion = async () => {
+      if (!currentSession || !activePhase || currentSession.status === "completed") {
+        setGeneratedQuestion(null);
+        setQuestionStatus("idle");
+        return;
+      }
+
+      setQuestionStatus("loading");
+
+      try {
+        const response = await fetchEvaluationQuestion({
+          phase: {
+            id: activePhase.id,
+            name: activePhase.name,
+            prompt: activePhase.prompt,
+            guidance: activePhase.guidance,
+            dimensions: activePhase.dimensions,
+          },
+          startupProfile: currentSession.profile,
+          previousResponses: currentSession.responses.map((item) => ({
+            phaseId: item.phaseId,
+            phaseName: item.phaseName,
+            answer: item.answer,
+            score: item.score,
+            feedback: item.feedback,
+          })),
+        });
+
+        if (!cancelled) {
+          setGeneratedQuestion(response);
+          setQuestionStatus("ready");
+          setSelectedOptionId(null);
+          setOtherAnswer("");
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setGeneratedQuestion({
+            stakeholder: activePhase.agentName,
+            scenario: `${activePhase.agentName} is testing your readiness for the current phase.`,
+            question: activePhase.prompt,
+            guidance: activePhase.guidance,
+            rationale: "Default question used because the Gemini request was unavailable.",
+            options: [],
+            allowOther: true,
+            source: "fallback",
+          });
+          setQuestionStatus("error");
+          setSelectedOptionId(null);
+          setOtherAnswer("");
+        }
+      }
+    };
+
+    void loadQuestion();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activePhase, currentSession]);
+
+  const handleProfileChange = (field: keyof StartupProfile, value: string) => {
+    setProfile((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleStartSession = () => {
+    if (!canStartSession) {
+      return;
+    }
+    startSession(profile);
+    setSelectedOptionId(null);
+    setOtherAnswer("");
+  };
+
+  const selectedOption =
+    generatedQuestion?.options.find((option) => option.id === selectedOptionId) ?? null;
+  const usingOther = selectedOptionId === "other";
+  const canSubmitAnswer =
+    selectedOptionId !== null && (!usingOther || otherAnswer.trim().length >= 20);
+
+  const buildAnswerPayload = () => {
+    if (!activePhase || !generatedQuestion || !selectedOptionId) {
+      return "";
+    }
+
+    if (usingOther) {
+      return [
+        `Stakeholder: ${generatedQuestion.stakeholder}`,
+        `Scenario: ${generatedQuestion.scenario}`,
+        `Question: ${generatedQuestion.question}`,
+        `Chosen response: Other`,
+        `Founder answer: ${otherAnswer.trim()}`,
+      ].join("\n");
+    }
+
+    return [
+      `Stakeholder: ${generatedQuestion.stakeholder}`,
+      `Scenario: ${generatedQuestion.scenario}`,
+      `Question: ${generatedQuestion.question}`,
+      `Chosen option: ${selectedOption?.label ?? ""}`,
+      `Expected consequence: ${selectedOption?.consequence ?? ""}`,
+    ].join("\n");
+  };
+
+  const handleSubmitAnswer = () => {
+    if (!activePhase || !canSubmitAnswer) {
+      return;
+    }
+    submitPhaseAnswer(buildAnswerPayload());
+    setSelectedOptionId(null);
+    setOtherAnswer("");
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
-      <div className="flex-1 flex pt-16">
-        {/* Sidebar - Phase Progress */}
-        <div className="hidden lg:block w-72 border-r border-border p-6 overflow-y-auto">
-          <h3 className="font-heading font-semibold text-sm text-foreground mb-1">Phase Progress</h3>
-          <p className="text-xs text-muted-foreground mb-6">Customer Discovery</p>
-          <Progress value={35} className="h-1.5 mb-6" />
-
-          <div className="space-y-1">
-            {phases.map((p, i) => (
-              <div
-                key={i}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
-                  p.active ? "bg-primary/10 text-primary" :
-                  p.complete ? "text-foreground" :
-                  "text-muted-foreground"
-                }`}
-              >
-                <div className={`w-2 h-2 rounded-full ${
-                  p.active ? "bg-primary animate-pulse-glow" :
-                  p.complete ? "bg-primary/60" :
-                  "bg-muted-foreground/30"
-                }`} />
-                <span className="text-xs font-mono text-muted-foreground w-6">{p.id}</span>
-                <span className="text-xs">{p.name}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Agents */}
-          <h3 className="font-heading font-semibold text-sm text-foreground mt-8 mb-4">Active Agents</h3>
-          <div className="space-y-2">
-            {agents.map((a, i) => (
-              <div key={i} className="flex items-center gap-3 px-3 py-2 rounded-lg bg-secondary/50">
-                <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center">
-                  <a.icon className={`w-4 h-4 ${a.color}`} />
-                </div>
-                <div>
-                  <div className="text-xs font-medium text-foreground">{a.name}</div>
-                  <div className="text-[10px] text-muted-foreground">{a.role}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Executive HUD */}
-          <h3 className="font-heading font-semibold text-sm text-foreground mt-8 mb-4">Executive HUD</h3>
-          <div className="space-y-3">
-            {[
-              { label: "Budget Health", value: 62, icon: DollarSign },
-              { label: "Social Trust", value: 45, icon: Users },
-              { label: "Failure Risk", value: 38, icon: AlertTriangle },
-            ].map((h, i) => (
-              <div key={i}>
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-xs text-muted-foreground">{h.label}</span>
-                  <span className="text-xs font-semibold text-foreground">{h.value}%</span>
-                </div>
-                <Progress value={h.value} className="h-1.5" />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Chat Area */}
-        <div className="flex-1 flex flex-col">
-          {/* Chat header */}
-          <div className="border-b border-border px-6 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <MessageSquare className="w-4 h-4 text-primary" />
-              <div>
-                <h2 className="font-heading font-semibold text-sm text-foreground">Phase 2: Customer Discovery</h2>
-                <p className="text-xs text-muted-foreground">Target persona stress test & market sizing</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">VVS: </span>
-              <span className="text-xs font-bold text-primary">68</span>
-            </div>
-          </div>
-
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-6">
-            <AnimatePresence>
-              {messages.map((m, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                  className={`flex gap-3 ${m.role === "user" ? "justify-end" : ""}`}
-                >
-                  {m.role === "agent" && (
-                    <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center shrink-0">
-                      <Bot className="w-4 h-4 text-primary" />
-                    </div>
-                  )}
-                  <div className={`max-w-2xl ${
-                    m.role === "user"
-                      ? "bg-primary/10 border border-primary/20 rounded-2xl rounded-br-md px-5 py-3"
-                      : "glass rounded-2xl rounded-bl-md px-5 py-3"
-                  }`}>
-                    {m.role === "agent" && (
-                      <div className="text-xs font-semibold text-primary mb-1.5">{m.agent}</div>
-                    )}
-                    <p className="text-sm text-foreground leading-relaxed">{m.content}</p>
+      <div className="flex-1 pt-16">
+        {!currentSession && (
+          <div className="container mx-auto px-6 py-10">
+            <div className="max-w-5xl mx-auto grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+              <div className="glass rounded-2xl p-8">
+                <div className="mb-8">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-4 py-1.5">
+                    <Brain className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-medium text-primary">Social Startup Market Readiness Evaluation</span>
                   </div>
-                  {m.role === "user" && (
-                    <div className="w-8 h-8 rounded-lg bg-accent/20 flex items-center justify-center shrink-0">
-                      <User className="w-4 h-4 text-accent" />
-                    </div>
-                  )}
-                </motion.div>
-              ))}
-            </AnimatePresence>
+                  <h1 className="mt-5 font-heading text-3xl font-bold text-foreground">
+                    Start a real 8-phase readiness review
+                  </h1>
+                  <p className="mt-3 text-muted-foreground">
+                    Add the startup details first. We will then evaluate whether the venture is ready to enter the market through mission, trust, sustainability, and launch questions.
+                  </p>
+                </div>
 
-            {/* AI thinking indicator */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex items-center gap-3"
-            >
-              <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center">
-                <Lightbulb className="w-4 h-4 text-accent animate-pulse-glow" />
-              </div>
-              <div className="glass rounded-2xl rounded-bl-md px-5 py-3">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                  <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" style={{ animationDelay: "0.2s" }} />
-                  <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" style={{ animationDelay: "0.4s" }} />
-                  <span className="text-xs text-muted-foreground ml-2">Community Lead is analyzing your response...</span>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <label className="space-y-2">
+                    <span className="text-sm text-foreground">Startup name</span>
+                    <input
+                      value={profile.startupName}
+                      onChange={(event) => handleProfileChange("startupName", event.target.value)}
+                      className="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary/30"
+                      placeholder="Example: Rural Health Access Network"
+                    />
+                  </label>
+                  <label className="space-y-2">
+                    <span className="text-sm text-foreground">Sector</span>
+                    <input
+                      value={profile.sector}
+                      onChange={(event) => handleProfileChange("sector", event.target.value)}
+                      className="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary/30"
+                      placeholder="Health, education, climate, livelihoods..."
+                    />
+                  </label>
+                  <label className="space-y-2">
+                    <span className="text-sm text-foreground">Geography</span>
+                    <input
+                      value={profile.geography}
+                      onChange={(event) => handleProfileChange("geography", event.target.value)}
+                      className="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary/30"
+                      placeholder="Primary market or region"
+                    />
+                  </label>
+                  <label className="space-y-2">
+                    <span className="text-sm text-foreground">Current stage</span>
+                    <input
+                      value={profile.stage}
+                      onChange={(event) => handleProfileChange("stage", event.target.value)}
+                      className="w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary/30"
+                      placeholder="Idea, pilot, early revenue, expansion..."
+                    />
+                  </label>
+                </div>
+
+                <div className="mt-4 grid gap-4">
+                  <label className="space-y-2">
+                    <span className="text-sm text-foreground">Mission</span>
+                    <textarea
+                      value={profile.mission}
+                      onChange={(event) => handleProfileChange("mission", event.target.value)}
+                      className="min-h-28 w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary/30"
+                      placeholder="What social outcome is this startup trying to create?"
+                    />
+                  </label>
+                  <label className="space-y-2">
+                    <span className="text-sm text-foreground">Primary beneficiaries or customers</span>
+                    <textarea
+                      value={profile.beneficiaries}
+                      onChange={(event) => handleProfileChange("beneficiaries", event.target.value)}
+                      className="min-h-24 w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary/30"
+                      placeholder="Who benefits, who buys, and who influences adoption?"
+                    />
+                  </label>
+                  <label className="space-y-2">
+                    <span className="text-sm text-foreground">Solution approach</span>
+                    <textarea
+                      value={profile.solutionApproach}
+                      onChange={(event) => handleProfileChange("solutionApproach", event.target.value)}
+                      className="min-h-24 w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary/30"
+                      placeholder="Describe the core innovation or intervention and how it solves the social problem in practice..."
+                    />
+                  </label>
+                  <label className="space-y-2">
+                    <span className="text-sm text-foreground">Operating model</span>
+                    <textarea
+                      value={profile.model}
+                      onChange={(event) => handleProfileChange("model", event.target.value)}
+                      className="min-h-24 w-full rounded-xl border border-border bg-secondary px-4 py-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary/30"
+                      placeholder="How does the startup deliver value and stay sustainable?"
+                    />
+                  </label>
+                </div>
+
+                <div className="mt-6 flex flex-wrap gap-3">
+                  <Button variant="hero" size="lg" onClick={handleStartSession} disabled={!canStartSession}>
+                    Start Evaluation <ArrowRight className="ml-1 h-4 w-4" />
+                  </Button>
+                  <Button variant="outline" size="lg" asChild>
+                    <Link to="/dashboard">View Dashboard</Link>
+                  </Button>
                 </div>
               </div>
-            </motion.div>
-          </div>
 
-          {/* Input */}
-          <div className="border-t border-border p-4">
-            <div className="flex items-center gap-3 max-w-4xl mx-auto">
-              <div className="flex-1 relative">
-                <input
-                  type="text"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="Type your response... (no multiple-choice — think deeply)"
-                  className="w-full bg-secondary rounded-xl px-5 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
-                />
+              <div className="glass rounded-2xl p-8">
+                <h2 className="font-heading text-xl font-semibold text-foreground">What this implementation now does</h2>
+                <div className="mt-6 space-y-4 text-sm text-muted-foreground">
+                  <div className="rounded-xl bg-secondary/60 p-4">
+                    Runs interactive management simulations so founders can practice real market-entry decisions instead of reading static sample content.
+                  </div>
+                  <div className="rounded-xl bg-secondary/60 p-4">
+                    Tests resource allocation choices across people, technology, outreach, and delivery constraints.
+                  </div>
+                  <div className="rounded-xl bg-secondary/60 p-4">
+                    Evaluates stakeholder navigation across communities, institutions, government bodies, and implementation partners.
+                  </div>
+                  <div className="rounded-xl bg-secondary/60 p-4">
+                    Produces an impact sustainability view that weighs outcomes against financial viability before launch.
+                  </div>
+                </div>
               </div>
-              <Button variant="hero" size="icon" className="w-11 h-11 rounded-xl">
-                <Send className="w-4 h-4" />
-              </Button>
             </div>
           </div>
-        </div>
+        )}
+
+        {currentSession && (
+          <div className="container mx-auto px-6 py-8">
+            <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
+              <div className="glass rounded-2xl p-6">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.18em] text-primary">Active evaluation</p>
+                    <h2 className="mt-2 font-heading text-xl font-semibold text-foreground">
+                      {currentSession.profile.startupName}
+                    </h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {currentSession.profile.sector} in {currentSession.profile.geography}
+                    </p>
+                  </div>
+                  <Button variant="ghost" size="icon" onClick={resetCurrentSession}>
+                    <RotateCcw className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                <div className="mt-6">
+                  <div className="mb-2 flex items-center justify-between text-xs text-muted-foreground">
+                    <span>Progress</span>
+                    <span>{completedPhases}/{evaluationPhases.length}</span>
+                  </div>
+                  <Progress value={progress} className="h-2" />
+                </div>
+
+                <div className="mt-6 space-y-2">
+                  {evaluationPhases.map((phase, index) => {
+                    const isDone = index < completedPhases;
+                    const isActive = currentSession.status !== "completed" && index === currentSession.currentPhaseIndex;
+                    return (
+                      <div
+                        key={phase.id}
+                        className={`rounded-xl border px-3 py-3 text-sm ${
+                          isActive
+                            ? "border-primary/40 bg-primary/10"
+                            : isDone
+                              ? "border-border bg-secondary/70"
+                              : "border-border/60 bg-secondary/30"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="font-medium text-foreground">Phase {phase.id}</span>
+                          {isDone && <CheckCircle2 className="h-4 w-4 text-primary" />}
+                        </div>
+                        <div className="mt-1 text-xs text-muted-foreground">{phase.name}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="mt-6 rounded-xl bg-secondary/60 p-4">
+                  <h3 className="text-sm font-medium text-foreground">Current score</h3>
+                  <div className="mt-2 font-heading text-3xl font-bold text-primary">
+                    {currentSession.overallScore}
+                  </div>
+                  <p className="mt-2 text-xs text-muted-foreground">{currentSession.readinessDecision}</p>
+                </div>
+              </div>
+
+              <div className="glass rounded-2xl p-6">
+                {currentSession.status === "completed" ? (
+                  <div className="mx-auto max-w-3xl">
+                    <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-4 py-1.5">
+                      <CheckCircle2 className="h-4 w-4 text-primary" />
+                      <span className="text-sm font-medium text-primary">Evaluation complete</span>
+                    </div>
+                    <h1 className="mt-5 font-heading text-3xl font-bold text-foreground">
+                      {currentSession.readinessDecision}
+                    </h1>
+                    <p className="mt-3 text-muted-foreground">{currentSession.readinessSummary}</p>
+
+                    <div className="mt-8 grid gap-5 md:grid-cols-2">
+                      <div className="rounded-2xl bg-secondary/60 p-5">
+                        <h2 className="font-heading text-lg font-semibold text-foreground">Top strengths</h2>
+                        <div className="mt-4 space-y-3">
+                          {currentSession.strengths.map((item, index) => (
+                            <div key={index} className="flex gap-3 text-sm text-muted-foreground">
+                              <Target className="mt-0.5 h-4 w-4 text-primary" />
+                              <span>{item}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="rounded-2xl bg-secondary/60 p-5">
+                        <h2 className="font-heading text-lg font-semibold text-foreground">Critical gaps</h2>
+                        <div className="mt-4 space-y-3">
+                          {currentSession.blindspots.map((item, index) => (
+                            <div key={index} className="flex gap-3 text-sm text-muted-foreground">
+                              <AlertTriangle className="mt-0.5 h-4 w-4 text-accent" />
+                              <span>{item}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-8 rounded-2xl bg-secondary/60 p-5">
+                      <h2 className="font-heading text-lg font-semibold text-foreground">Dimension scores</h2>
+                      <div className="mt-5 grid gap-4 md:grid-cols-2">
+                        {Object.entries(currentSession.dimensionScores).map(([dimension, score]) => (
+                          <div key={dimension}>
+                            <div className="mb-2 flex items-center justify-between text-sm">
+                          <span className="text-foreground">{getDimensionLabel(dimension as ReadinessDimension)}</span>
+                              <span className="font-semibold text-primary">{score}%</span>
+                            </div>
+                            <Progress value={score} className="h-2" />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="mt-8 flex flex-wrap gap-3">
+                      <Button variant="hero" asChild>
+                        <Link to="/results">
+                          View Full Report <FileText className="ml-1 h-4 w-4" />
+                        </Link>
+                      </Button>
+                      <Button variant="outline" asChild>
+                        <Link to="/dashboard">Back to Dashboard</Link>
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mx-auto max-w-3xl">
+                    {activePhase && (
+                      <>
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+                            <MessageSquare className="h-5 w-5 text-primary" />
+                          </div>
+                          <div>
+                            <p className="text-xs uppercase tracking-[0.18em] text-primary">
+                              Phase {activePhase.id}
+                            </p>
+                            <h1 className="font-heading text-2xl font-bold text-foreground">
+                              {activePhase.name}
+                            </h1>
+                          </div>
+                        </div>
+
+                        <div className="mt-6 rounded-2xl bg-secondary/60 p-5">
+                          <div className="flex items-start gap-3">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-secondary">
+                              <Bot className="h-5 w-5 text-primary" />
+                            </div>
+                            <div>
+                              <div className="text-sm font-semibold text-primary">
+                                {generatedQuestion?.stakeholder ?? activePhase.agentName}
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                {activePhase.agentRole}
+                              </div>
+                              <p className="mt-2 text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                                {generatedQuestion?.scenario}
+                              </p>
+                              <p className="mt-3 text-sm leading-relaxed text-foreground">
+                                {generatedQuestion?.question ?? activePhase.prompt}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="mt-5 rounded-2xl border border-border bg-background/40 p-4">
+                          <div className="flex items-start gap-3">
+                            <Lightbulb className="mt-0.5 h-4 w-4 text-accent" />
+                            <div>
+                              <p className="text-sm text-muted-foreground">
+                                {generatedQuestion?.guidance ?? activePhase.guidance}
+                              </p>
+                              {questionStatus !== "idle" && (
+                                <p className="mt-2 text-[11px] uppercase tracking-[0.16em] text-primary/80">
+                                  {questionStatus === "loading"
+                                    ? "Generating question with Gemini"
+                                    : generatedQuestion?.source === "gemini"
+                                      ? "Question generated with Gemini"
+                                      : "Using fallback question"}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {latestResponse && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="mt-6 rounded-2xl bg-primary/8 p-5"
+                          >
+                            <div className="flex items-center justify-between gap-3">
+                              <h2 className="font-heading text-lg font-semibold text-foreground">
+                                Latest evaluator feedback
+                              </h2>
+                              <span className="text-sm font-semibold text-primary">
+                                {latestResponse.score}/100
+                              </span>
+                            </div>
+                            <p className="mt-3 text-sm text-muted-foreground">{latestResponse.feedback}</p>
+                            <div className="mt-4 grid gap-4 md:grid-cols-2">
+                              <div>
+                                <h3 className="text-sm font-medium text-foreground">Strengths</h3>
+                                <div className="mt-2 space-y-2">
+                                  {latestResponse.strengths.map((item, index) => (
+                                    <p key={index} className="text-sm text-muted-foreground">{item}</p>
+                                  ))}
+                                </div>
+                              </div>
+                              <div>
+                                <h3 className="text-sm font-medium text-foreground">Gaps to close</h3>
+                                <div className="mt-2 space-y-2">
+                                  {latestResponse.blindspots.map((item, index) => (
+                                    <p key={index} className="text-sm text-muted-foreground">{item}</p>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          </motion.div>
+                        )}
+
+                        <div className="mt-6">
+                          <div className="space-y-3">
+                            {generatedQuestion?.options.map((option) => {
+                              const isSelected = selectedOptionId === option.id;
+                              return (
+                                <button
+                                  key={option.id}
+                                  type="button"
+                                  onClick={() => setSelectedOptionId(option.id)}
+                                  className={`w-full rounded-2xl border p-4 text-left transition-colors ${
+                                    isSelected
+                                      ? "border-primary bg-primary/10"
+                                      : "border-border bg-secondary hover:bg-secondary/80"
+                                  }`}
+                                >
+                                  <div className="flex items-center justify-between gap-4">
+                                    <span className="text-sm font-medium text-foreground">{option.label}</span>
+                                    {isSelected && (
+                                      <span className="text-xs font-semibold text-primary">{option.scoreHint}/100</span>
+                                    )}
+                                  </div>
+                                  <p className="mt-2 text-xs text-muted-foreground">{option.consequence}</p>
+                                </button>
+                              );
+                            })}
+
+                            {(generatedQuestion?.allowOther ?? true) && (
+                              <button
+                                type="button"
+                                onClick={() => setSelectedOptionId("other")}
+                                className={`w-full rounded-2xl border p-4 text-left transition-colors ${
+                                  usingOther
+                                    ? "border-primary bg-primary/10"
+                                    : "border-border bg-secondary hover:bg-secondary/80"
+                                }`}
+                              >
+                                <div className="flex items-center justify-between gap-4">
+                                  <span className="text-sm font-medium text-foreground">Other</span>
+                                  <span className="text-xs text-muted-foreground">Give your own response</span>
+                                </div>
+                                <p className="mt-2 text-xs text-muted-foreground">
+                                  Use this if none of the options reflect how you would respond in the market.
+                                </p>
+                              </button>
+                            )}
+                          </div>
+
+                          {usingOther && (
+                            <textarea
+                              value={otherAnswer}
+                              onChange={(event) => setOtherAnswer(event.target.value)}
+                              placeholder={activePhase.placeholder}
+                              className="mt-4 min-h-40 w-full rounded-2xl border border-border bg-secondary px-5 py-4 text-sm text-foreground outline-none focus:ring-2 focus:ring-primary/30"
+                            />
+                          )}
+
+                          {selectedOption && (
+                            <div className="mt-4 rounded-2xl border border-primary/30 bg-primary/5 p-4">
+                              <div className="flex items-center justify-between gap-3">
+                                <h3 className="text-sm font-semibold text-foreground">If you choose this</h3>
+                                <span className="text-sm font-semibold text-primary">{selectedOption.scoreHint}/100</span>
+                              </div>
+                              <p className="mt-2 text-sm text-muted-foreground">{selectedOption.consequence}</p>
+                              <p className="mt-3 text-xs text-muted-foreground">
+                                You can still go back and choose another option before submitting.
+                              </p>
+                            </div>
+                          )}
+
+                          {usingOther && otherAnswer.trim().length > 0 && (
+                            <div className="mt-4 rounded-2xl border border-primary/30 bg-primary/5 p-4">
+                              <h3 className="text-sm font-semibold text-foreground">Custom response path</h3>
+                              <p className="mt-2 text-sm text-muted-foreground">
+                                Your custom answer will be scored from its evidence, stakeholder awareness, and market realism.
+                              </p>
+                            </div>
+                          )}
+
+                          <div className="mt-3 flex items-center justify-between gap-4">
+                            <p className="text-xs text-muted-foreground">
+                              Choose a response path, review the likely outcome, and submit when you are ready. The next scenario will adapt from this choice.
+                            </p>
+                            <div className="flex gap-3">
+                              {currentSession.responses.length > 0 && (
+                                <Button variant="outline" onClick={revisePreviousPhase}>
+                                  Go Back One Phase
+                                </Button>
+                              )}
+                              <Button
+                                variant="hero"
+                                onClick={handleSubmitAnswer}
+                                disabled={!canSubmitAnswer}
+                              >
+                                Submit phase answer <Send className="ml-1 h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

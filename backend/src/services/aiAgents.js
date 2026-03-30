@@ -1,14 +1,8 @@
-const Anthropic = require('@anthropic-ai/sdk');
 const geminiService = require('./geminiService');
 const logger = require('../utils/logger');
 
 class AIAgentService {
   constructor() {
-    this.anthropic = new Anthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY,
-    });
-    
-    // Use Gemini instead of OpenAI
     this.gemini = geminiService;
   }
 
@@ -26,7 +20,7 @@ class AIAgentService {
 
 Personality: Analytical, risk-averse, focused on numbers and sustainability
 Communication Style: Direct, data-driven, uses financial metrics
-Priorities: ${configs?.financeHead?.priorities?.join(', ') || 'profitability, cash-flow, unit-economics, funding, ROI'}
+Priorities: profitability, cash-flow, unit-economics, funding, ROI
 
 Venture Context:
 - Industry: ${ventureContext.industry || 'Unknown'}
@@ -59,7 +53,7 @@ Provide your financial perspective as the Finance Head:`,
 
 Personality: Pragmatic, innovation-focused, concerned with technical feasibility
 Communication Style: Technical, solution-oriented, uses development terminology
-Priorities: ${configs?.techLead?.priorities?.join(', ') || 'technical-feasibility, scalability, development-timeline, tech-stack, MVP'}
+Priorities: technical-feasibility, scalability, development-timeline, tech-stack, MVP
 
 Venture Context:
 - Industry: ${ventureContext.industry || 'Unknown'}
@@ -90,7 +84,7 @@ Provide your technical perspective as the Tech Lead:`,
 
 Personality: Empathetic, user-centric, focused on market adoption and trust
 Communication Style: Relatable, uses customer-centric language, focuses on human factors
-Priorities: ${configs?.communityLead?.priorities?.join(', ') || 'customer-adoption, trust-building, community-engagement, user-experience, market-fit'}
+Priorities: customer-adoption, trust-building, community-engagement, user-experience, market-fit
 
 Venture Context:
 - Target Market: ${ventureContext.targetMarket || 'Unknown'}
@@ -121,7 +115,7 @@ Provide your community perspective as the Community Lead:`,
 
 Personality: Skeptical, market-aware, focused on scalability and competitive advantage
 Communication Style: Direct, challenging, uses investment terminology
-Priorities: ${configs?.vcAuditor?.priorities?.join(', ') || 'market-size, competitive-advantage, scalability, team-capability, exit-potential'}
+Priorities: market-size, competitive-advantage, scalability, team-capability, exit-potential
 
 Market Data: {marketData}
 Competitive Landscape: {competitiveData}
@@ -151,7 +145,7 @@ Provide your VC perspective as the Auditor:`,
 
 Personality: Contrarian, pessimistic, focused on finding flaws and failure modes
 Communication Style: Provocative, challenging, uses failure case studies
-Priorities: ${configs?.devilAdvocate?.priorities?.join(', ') || 'failure-modes, assumption-challenges, worst-case-scenarios, blindspots'}
+Priorities: failure-modes, assumption-challenges, worst-case-scenarios, blindspots
 
 Failure Case Studies: {failureCases}
 Industry Failure Patterns: {industryFailures}
@@ -179,65 +173,21 @@ Provide your adversarial perspective as the Devil's Advocate:`,
   async generateAgentResponse(agentType, userResponse, context = {}) {
     try {
       const config = this.getAgentConfig(agentType, context.ventureContext);
-      
-      // Choose AI service based on agent type
-      let aiResponse;
-      if (this.gemini && ['techLead', 'communityLead', 'vcAuditor'].includes(agentType)) {
-        aiResponse = await this.gemini.generateAgentResponse(agentType, userResponse, context);
-      } else {
-        aiResponse = await this.generateAnthropicResponse(agentType, userResponse, context);
-      }
+      const aiResponse = await this.gemini.generateAgentResponse(agentType, userResponse, context);
 
-      const prompt = config.promptTemplate
-        .replace('{phase}', context.phase || 'Unknown')
-        .replace('{userResponse}', userResponse)
-        .replace('{context}', JSON.stringify(context.previousContext || {}))
-        .replace('{technicalRequirements}', JSON.stringify(context.technicalRequirements || {}))
-        .replace('{marketData}', JSON.stringify(context.marketData || {}))
-        .replace('{competitiveData}', JSON.stringify(context.competitiveData || {}))
-        .replace('{failureCases}', JSON.stringify(context.failureCases || []))
-        .replace('{industryFailures}', JSON.stringify(context.industryFailures || {}));
-
-      // If using Gemini, return the response directly
-      if (aiResponse && aiResponse.response) {
-        return aiResponse;
-      }
-
-      // Otherwise use Anthropic
-      const message = {
-        role: 'user',
-        content: prompt,
-      };
-
-      const anthropicResponse = await this.anthropic.messages.create({
-        model: 'claude-3-sonnet-20240229',
-        max_tokens: 1000,
-        temperature: 0.7,
-        messages: [message],
-      });
-
-      const agentResponse = anthropicResponse.content[0].text;
-
-      // Log AI interaction
       logger.logAIInteraction(
         context.userId,
         agentType,
         context.phase,
         { type: 'agent_response', agentType, userResponse },
-        { responseLength: agentResponse.length, model: 'claude-3-sonnet' }
+        { responseLength: aiResponse.response.length, model: aiResponse.metadata?.model || 'gemini-1.5-pro' }
       );
 
       return {
-        agent: agentType,
+        ...aiResponse,
         agentName: config.name,
-        response: agentResponse,
         personality: config.personality,
         priorities: config.priorities,
-        metadata: {
-          model: 'claude-3-sonnet',
-          temperature: 0.7,
-          maxTokens: 1000,
-        },
       };
     } catch (error) {
       logger.error(`Error generating agent response for ${agentType}:`, error);
@@ -277,40 +227,13 @@ Provide your adversarial perspective as the Devil's Advocate:`,
   // Generate synthesis of multiple agent perspectives
   async generateSynthesis(agentResponses, context = {}) {
     try {
-      const agentSummaries = agentResponses.map(response => 
-        `${response.agentName}: ${response.response.substring(0, 200)}...`
-      ).join('\n\n');
-
-      const synthesisPrompt = `You are a strategic facilitator synthesizing perspectives from a venture evaluation boardroom. 
-
-Agent Perspectives:
-${agentSummaries}
-
-User's Original Response: ${context.userResponse}
-
-Current Phase: ${context.phase}
-
-Provide a concise synthesis that:
-1. Identifies key points of agreement and disagreement among agents
-2. Highlights the most critical challenges raised
-3. Suggests areas where the user needs to provide more clarity
-4. Maintains a balanced, facilitative tone
-5. Is no more than 300 words
-
-Synthesis:`;
-
-      const response = await this.anthropic.messages.create({
-        model: 'claude-3-sonnet-20240229',
-        max_tokens: 400,
-        temperature: 0.5,
-        messages: [{ role: 'user', content: synthesisPrompt }],
-      });
+      const synthesis = await this.gemini.generateSynthesis(agentResponses, context);
 
       return {
-        synthesis: response.content[0].text,
-        keyThemes: this.extractKeyThemes(agentResponses),
-        conflicts: this.identifyConflicts(agentResponses),
-        actionItems: this.generateActionItems(agentResponses, context),
+        synthesis: synthesis.synthesis,
+        keyThemes: synthesis.keyThemes,
+        conflicts: synthesis.conflicts,
+        actionItems: synthesis.actionItems,
       };
     } catch (error) {
       logger.error('Error generating synthesis:', error);
@@ -455,32 +378,22 @@ Provide JSON output:
   "nextQuestions": ["How will you measure success?", "What's your backup plan?"]
 }`;
 
-      const response = await this.anthropic.messages.create({
-        model: 'claude-3-sonnet-20240229',
-        max_tokens: 800,
-        temperature: 0.3,
-        messages: [{ role: 'user', content: evaluationPrompt }],
+      return await this.gemini.generateJson(evaluationPrompt, {
+        overallScore: 5,
+        criteria: {
+          specificity: { score: 5, feedback: 'Unable to parse detailed evaluation' },
+          relevance: { score: 5, feedback: 'Unable to parse detailed evaluation' },
+          strategicThinking: { score: 5, feedback: 'Unable to parse detailed evaluation' },
+          selfAwareness: { score: 5, feedback: 'Unable to parse detailed evaluation' },
+          actionability: { score: 5, feedback: 'Unable to parse detailed evaluation' },
+        },
+        strengths: [],
+        improvements: [],
+        nextQuestions: [],
+      }, {
+        phase: context.phase,
+        ventureContext: context.ventureContext,
       });
-
-      try {
-        const evaluation = JSON.parse(response.content[0].text);
-        return evaluation;
-      } catch (parseError) {
-        // Fallback if JSON parsing fails
-        return {
-          overallScore: 5,
-          criteria: {
-            specificity: { score: 5, feedback: 'Unable to parse detailed evaluation' },
-            relevance: { score: 5, feedback: 'Unable to parse detailed evaluation' },
-            strategicThinking: { score: 5, feedback: 'Unable to parse detailed evaluation' },
-            selfAwareness: { score: 5, feedback: 'Unable to parse detailed evaluation' },
-            actionability: { score: 5, feedback: 'Unable to parse detailed evaluation' },
-          },
-          strengths: [],
-          improvements: [],
-          nextQuestions: [],
-        };
-      }
     } catch (error) {
       logger.error('Error evaluating response:', error);
       throw error;

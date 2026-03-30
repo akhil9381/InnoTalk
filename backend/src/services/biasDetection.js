@@ -1,12 +1,9 @@
-const Anthropic = require('@anthropic');
 const logger = require('../utils/logger');
+const geminiService = require('./geminiService');
 
 class BiasDetectionService {
   constructor() {
-    this.anthropic = new Anthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY,
-    });
-    
+    this.gemini = geminiService;
     this.biasTypes = {
       'confirmation-bias': {
         name: 'Confirmation Bias',
@@ -180,30 +177,17 @@ Return JSON format:
   ]
 }`;
 
-      const message = {
-        role: 'user',
-        content: prompt,
-      };
-
-      const aiResponse = await this.anthropic.messages.create({
-        model: 'claude-3-sonnet-20240229',
-        max_tokens: 800,
-        temperature: 0.3,
-        messages: [message],
+      const analysis = await this.gemini.generateJson(prompt, null, {
+        phase,
+        ventureContext,
       });
 
-      try {
-        const analysis = JSON.parse(aiResponse.content[0].text);
-        return {
-          detectedBiases: analysis.detectedBiases || [],
-        };
-      } catch (parseError) {
-        // Fallback: simple keyword-based detection
-        return this.fallbackBiasDetection(response);
-      }
+      return {
+        detectedBiases: analysis?.detectedBiases || [],
+      };
     } catch (error) {
       logger.error('Error detecting bias in response:', error);
-      return { detectedBiases: [] };
+      return this.fallbackBiasDetection(response);
     }
   }
 

@@ -4,42 +4,77 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import {
-  Award, Download, Share2, FileText, Presentation,
-  TrendingUp, DollarSign, Cpu, Shield, Users, Briefcase,
-  CheckCircle2, AlertCircle, Brain, QrCode
+  Award,
+  Download,
+  Share2,
+  FileText,
+  Presentation,
+  Shield,
+  Users,
+  Briefcase,
+  CheckCircle2,
+  AlertCircle,
+  Brain,
+  QrCode,
+  TrendingUp,
+  DollarSign,
+  Cpu,
 } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useEvaluation } from "@/context/EvaluationContext";
+import { getDimensionLabel, type ReadinessDimension } from "@/lib/evaluation";
 
-const vvsBreakdown = [
-  { label: "Market", score: 82, icon: TrendingUp, feedback: "Strong TAM analysis. Need sharper ICP definition." },
-  { label: "Financial", score: 68, icon: DollarSign, feedback: "Unit economics are thin. Revisit CAC assumptions." },
-  { label: "Technical", score: 85, icon: Cpu, feedback: "Solid MVP scope. Offline-first approach is smart." },
-  { label: "Regulatory", score: 72, icon: Shield, feedback: "FSSAI compliance addressed. Missing GST implications." },
-  { label: "Team", score: 65, icon: Users, feedback: "Needs co-founder with financial domain expertise." },
-  { label: "Execution", score: 78, icon: Briefcase, feedback: "Go-to-market plan is actionable. Timeline is aggressive." },
-];
-
-const blindspots = [
-  "Underestimated customer acquisition cost in Tier-2 cities",
-  "No contingency plan for regulatory changes in food delivery",
-  "Overreliance on single revenue stream (subscription)",
-  "Competitor analysis missed 2 key regional players",
-];
-
-const artifacts = [
-  { name: "Product Requirements Document", type: "PRD", icon: FileText },
-  { name: "Investor Pitch Deck", type: "PPTX", icon: Presentation },
-  { name: "PRISM Grant Application", type: "PDF", icon: FileText },
-  { name: "Financial Model", type: "XLSX", icon: DollarSign },
-];
+const dimensionIcons: Record<ReadinessDimension, typeof TrendingUp> = {
+  needClarity: TrendingUp,
+  communityTrust: Users,
+  innovationFit: Cpu,
+  sustainability: DollarSign,
+  goToMarket: Briefcase,
+  governance: Shield,
+};
 
 const Results = () => {
-  const overallVVS = 75;
+  const { latestCompletedSession, currentSession } = useEvaluation();
+  const session =
+    latestCompletedSession ??
+    (currentSession?.status === "completed" ? currentSession : null);
+
+  const artifacts = [
+    { name: "Market Readiness Brief", type: "PDF", icon: FileText },
+    { name: "Stakeholder Navigation Deck", type: "PPTX", icon: Presentation },
+    { name: "Resource Allocation Plan", type: "DOC", icon: FileText },
+    { name: "Impact Sustainability Dashboard", type: "XLSX", icon: DollarSign },
+  ];
+
+  if (!session) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="container mx-auto px-6 pt-24 pb-16">
+          <div className="mx-auto max-w-3xl rounded-2xl bg-secondary/40 p-8 text-center">
+            <h1 className="font-heading text-3xl font-bold text-foreground">No completed report yet</h1>
+            <p className="mt-3 text-muted-foreground">
+              Complete a social startup evaluation to generate a full market-readiness report.
+            </p>
+            <div className="mt-6 flex justify-center gap-3">
+              <Button variant="hero" asChild>
+                <Link to="/simulation">Start Evaluation</Link>
+              </Button>
+              <Button variant="outline" asChild>
+                <Link to="/dashboard">Back to Dashboard</Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       <div className="container mx-auto px-6 pt-24 pb-16">
-        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -47,17 +82,16 @@ const Results = () => {
         >
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/30 bg-primary/5 mb-6">
             <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
-            <span className="text-sm font-medium text-primary">Simulation Complete</span>
+            <span className="text-sm font-medium text-primary">Market Readiness Evaluation Complete</span>
           </div>
           <h1 className="font-heading text-3xl md:text-5xl font-bold mb-4">
-            Your <span className="text-gradient-primary">Smart Report</span>
+            Your <span className="text-gradient-primary">Market Report</span>
           </h1>
           <p className="text-muted-foreground max-w-xl mx-auto">
-            FinTech Payment App — Tier-2 Restaurant POS Platform
+            {session.profile.startupName} - {session.profile.sector} in {session.profile.geography}
           </p>
         </motion.div>
 
-        {/* VVS Score Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -65,40 +99,44 @@ const Results = () => {
           className="glass rounded-2xl p-8 mb-8 max-w-4xl mx-auto"
         >
           <div className="flex flex-col md:flex-row items-center gap-8">
-            {/* Score Circle */}
             <div className="relative w-40 h-40 shrink-0">
               <svg className="w-full h-full -rotate-90" viewBox="0 0 120 120">
                 <circle cx="60" cy="60" r="52" fill="none" stroke="hsl(var(--secondary))" strokeWidth="8" />
                 <circle
-                  cx="60" cy="60" r="52" fill="none"
+                  cx="60"
+                  cy="60"
+                  r="52"
+                  fill="none"
                   stroke="hsl(var(--primary))"
                   strokeWidth="8"
-                  strokeDasharray={`${overallVVS * 3.27} ${327 - overallVVS * 3.27}`}
+                  strokeDasharray={`${session.overallScore * 3.27} ${327 - session.overallScore * 3.27}`}
                   strokeLinecap="round"
                   className="drop-shadow-[0_0_8px_hsl(var(--primary)/0.5)]"
                 />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="font-heading text-4xl font-bold text-foreground">{overallVVS}</span>
-                <span className="text-xs text-muted-foreground">VVS Score</span>
+                <span className="font-heading text-4xl font-bold text-foreground">{session.overallScore}</span>
+                <span className="text-xs text-muted-foreground">Readiness Score</span>
               </div>
             </div>
 
             <div className="flex-1 text-center md:text-left">
-              <h2 className="font-heading text-xl font-bold text-foreground mb-2">Verified Venture Score</h2>
-              <p className="text-sm text-muted-foreground mb-4">
-                Your idea shows strong technical foundations but needs financial model refinement.
-                You're in the <span className="text-primary font-semibold">top 30%</span> of FinTech simulation cohort.
-              </p>
-              <div className="flex flex-wrap gap-3">
+              <h2 className="font-heading text-xl font-bold text-foreground mb-2">
+                Social Startup Market Readiness Score
+              </h2>
+              <p className="text-sm text-muted-foreground mb-4">{session.readinessSummary}</p>
+              <div className="inline-flex rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
+                {session.readinessDecision}
+              </div>
+              <div className="mt-5 flex flex-wrap gap-3">
                 <Button variant="hero" size="sm">
-                  <Award className="w-3 h-3 mr-1" /> Get Certificate
+                  <Award className="w-3 h-3 mr-1" /> Get Market Certificate
                 </Button>
                 <Button variant="hero-outline" size="sm">
                   <Share2 className="w-3 h-3 mr-1" /> Share on LinkedIn
                 </Button>
                 <Button variant="outline" size="sm">
-                  <QrCode className="w-3 h-3 mr-1" /> QR Verify
+                  <QrCode className="w-3 h-3 mr-1" /> Verify Report
                 </Button>
               </div>
             </div>
@@ -106,7 +144,6 @@ const Results = () => {
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-          {/* VVS Breakdown */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -115,25 +152,32 @@ const Results = () => {
           >
             <h2 className="font-heading font-semibold text-lg text-foreground mb-6">Score Breakdown</h2>
             <div className="space-y-5">
-              {vvsBreakdown.map((d, i) => (
-                <div key={i}>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <d.icon className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm font-medium text-foreground">{d.label}</span>
+              {Object.entries(session.dimensionScores).map(([dimension, score]) => {
+                const Icon = dimensionIcons[dimension as ReadinessDimension];
+                return (
+                  <div key={dimension}>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <Icon className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-sm font-medium text-foreground">
+                          {getDimensionLabel(dimension as ReadinessDimension)}
+                        </span>
+                      </div>
+                      <span
+                        className={`text-sm font-bold ${
+                          score >= 80 ? "text-primary" : score >= 65 ? "text-accent" : "text-destructive"
+                        }`}
+                      >
+                        {score}%
+                      </span>
                     </div>
-                    <span className={`text-sm font-bold ${d.score >= 80 ? "text-primary" : d.score >= 65 ? "text-accent" : "text-destructive"}`}>
-                      {d.score}%
-                    </span>
+                    <Progress value={score} className="h-2 mb-1.5" />
                   </div>
-                  <Progress value={d.score} className="h-2 mb-1.5" />
-                  <p className="text-xs text-muted-foreground">{d.feedback}</p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </motion.div>
 
-          {/* Blindspots & Artifacts */}
           <div className="space-y-6">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -143,14 +187,31 @@ const Results = () => {
             >
               <div className="flex items-center gap-2 mb-4">
                 <Brain className="w-4 h-4 text-accent" />
-                <h2 className="font-heading font-semibold text-foreground">Cognitive Blindspots</h2>
+                <h2 className="font-heading font-semibold text-foreground">Critical Gaps</h2>
               </div>
               <div className="space-y-3">
-                {blindspots.map((b, i) => (
-                  <div key={i} className="flex items-start gap-2">
+                {session.blindspots.map((blindspot, index) => (
+                  <div key={index} className="flex items-start gap-2">
                     <AlertCircle className="w-3.5 h-3.5 text-accent shrink-0 mt-0.5" />
-                    <p className="text-xs text-muted-foreground leading-relaxed">{b}</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{blindspot}</p>
                   </div>
+                ))}
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35 }}
+              className="glass rounded-xl p-6"
+            >
+              <div className="flex items-center gap-2 mb-4">
+                <CheckCircle2 className="w-4 h-4 text-primary" />
+                <h2 className="font-heading font-semibold text-foreground">Recommended Next Steps</h2>
+              </div>
+              <div className="space-y-3">
+                {session.recommendedActions.map((item, index) => (
+                  <p key={index} className="text-xs text-muted-foreground leading-relaxed">{item}</p>
                 ))}
               </div>
             </motion.div>
@@ -166,16 +227,16 @@ const Results = () => {
                 <h2 className="font-heading font-semibold text-foreground">Generated Artifacts</h2>
               </div>
               <div className="space-y-2">
-                {artifacts.map((a, i) => (
+                {artifacts.map((artifact, index) => (
                   <button
-                    key={i}
+                    key={index}
                     className="w-full flex items-center justify-between p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors text-left"
                   >
                     <div className="flex items-center gap-3">
-                      <a.icon className="w-4 h-4 text-primary" />
+                      <artifact.icon className="w-4 h-4 text-primary" />
                       <div>
-                        <div className="text-xs font-medium text-foreground">{a.name}</div>
-                        <div className="text-[10px] text-muted-foreground">{a.type}</div>
+                        <div className="text-xs font-medium text-foreground">{artifact.name}</div>
+                        <div className="text-[10px] text-muted-foreground">{artifact.type}</div>
                       </div>
                     </div>
                     <Download className="w-3.5 h-3.5 text-muted-foreground" />

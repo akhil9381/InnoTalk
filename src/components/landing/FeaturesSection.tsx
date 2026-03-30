@@ -1,23 +1,29 @@
 import { motion } from "framer-motion";
 import { 
-  Brain, Scale, TrendingDown, Swords, Users2, 
-  GraduationCap, Globe, GitBranch, Presentation, 
-  ScanEye, Link2, LineChart 
+  Brain, DollarSign, Building2, LineChart
 } from "lucide-react";
 
 const features = [
-  { icon: Brain, title: "AI Co-Founder Engine", desc: "Personality-driven matching based on your simulation behavior" },
-  { icon: Scale, title: "Regulatory Intelligence", desc: "Real-time compliance radar for your industry and geography" },
-  { icon: TrendingDown, title: "Financial Stress Tester", desc: "Monte Carlo simulations and break-even analysis" },
-  { icon: Swords, title: "Devil's Advocate Mode", desc: "Fourth AI agent builds the strongest case against your venture" },
-  { icon: Users2, title: "Cohort Benchmarking", desc: "Compare your performance against founders in your domain" },
-  { icon: GraduationCap, title: "Mentor-in-the-Loop", desc: "Connect sessions to real human mentors for annotations" },
-  { icon: Globe, title: "Multilingual Mode", desc: "Simulations in Telugu, Hindi, Tamil, and more" },
-  { icon: GitBranch, title: "Branch Explorer", desc: "'What if?' decision tree replay and alternative paths" },
-  { icon: Presentation, title: "Investor Panel", desc: "Timed AI investor Q&A with 3 distinct archetypes" },
-  { icon: ScanEye, title: "Anti-Bias Engine", desc: "Detects confirmation bias, overconfidence, and more" },
-  { icon: Link2, title: "Ecosystem Hub", desc: "Connect to T-Works, T-Hub, NASSCOM, and Startup India" },
-  { icon: LineChart, title: "Journey Tracker", desc: "Track your founder evolution across multiple sessions" },
+  {
+    icon: Brain,
+    title: "Interactive management simulations",
+    desc: "Run founder decision scenarios that mimic real social enterprise tradeoffs around pilots, delivery, hiring, and launch timing.",
+  },
+  {
+    icon: DollarSign,
+    title: "Resource allocation modules",
+    desc: "Evaluate how a startup balances limited capital across team, technology, outreach, operations, and impact priorities.",
+  },
+  {
+    icon: Building2,
+    title: "Stakeholder navigation scenarios",
+    desc: "Pressure-test how the venture works with government bodies, NGOs, funders, communities, and implementation partners.",
+  },
+  {
+    icon: LineChart,
+    title: "Impact sustainability dashboard",
+    desc: "Show how social outcomes, adoption, execution, and financial viability move together before market entry.",
+  },
 ];
 
 const FeaturesSection = () => {
@@ -31,14 +37,14 @@ const FeaturesSection = () => {
           className="text-center mb-16"
         >
           <h2 className="font-heading text-3xl md:text-5xl font-bold mb-4">
-            Beyond <span className="text-gradient-accent">Simulation</span>
+            Solve The <span className="text-gradient-accent">Real Readiness Problems</span>
           </h2>
           <p className="text-muted-foreground max-w-xl mx-auto">
-            12 extended capabilities designed to take you from idea to investor-ready.
+            The platform is designed to close the four practical gaps that stop social startups from reaching the market responsibly.
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           {features.map((f, i) => (
             <motion.div
               key={i}

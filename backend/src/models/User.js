@@ -173,7 +173,6 @@ userSchema.virtual('isLocked').get(function() {
 });
 
 // Indexes
-userSchema.index({ email: 1 });
 userSchema.index({ 'profile.persona': 1 });
 userSchema.index({ 'subscription.tier': 1 });
 userSchema.index({ 'stats.simulationsCompleted': -1 });

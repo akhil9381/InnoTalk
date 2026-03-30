@@ -43,8 +43,12 @@ const Navbar = () => {
         </div>
 
         <div className="hidden md:flex items-center gap-3">
-          <Button variant="ghost" size="sm">Sign In</Button>
-          <Button variant="hero" size="sm">Get Started</Button>
+          <Button variant="ghost" size="sm" asChild>
+            <Link to="/dashboard">Dashboard</Link>
+          </Button>
+          <Button variant="hero" size="sm" asChild>
+            <Link to="/simulation">Launch Evaluation</Link>
+          </Button>
         </div>
 
         {/* Mobile toggle */}
@@ -78,8 +82,12 @@ const Navbar = () => {
                 </Link>
               ))}
               <div className="flex gap-3 mt-2">
-                <Button variant="ghost" size="sm" className="flex-1">Sign In</Button>
-                <Button variant="hero" size="sm" className="flex-1">Get Started</Button>
+                <Button variant="ghost" size="sm" className="flex-1" asChild>
+                  <Link to="/dashboard">Dashboard</Link>
+                </Button>
+                <Button variant="hero" size="sm" className="flex-1" asChild>
+                  <Link to="/simulation">Launch Evaluation</Link>
+                </Button>
               </div>
             </div>
           </motion.div>

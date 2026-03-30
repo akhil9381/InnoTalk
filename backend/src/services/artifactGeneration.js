@@ -1,4 +1,3 @@
-const Anthropic = require('@anthropic');
 const { PDFDocument, rgb, StandardFonts } = require('pdf-lib');
 const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } = require('docx');
 const ExcelJS = require('exceljs');
@@ -6,13 +5,11 @@ const logger = require('../utils/logger');
 const Artifact = require('../models/Artifact');
 const fs = require('fs').promises;
 const path = require('path');
+const geminiService = require('./geminiService');
 
 class ArtifactGenerationService {
   constructor() {
-    this.anthropic = new Anthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY,
-    });
-    
+    this.gemini = geminiService;
     this.outputDir = path.join(__dirname, '../../uploads/artifacts');
     this.ensureOutputDirectory();
   }
@@ -118,7 +115,7 @@ class ArtifactGenerationService {
         },
         generation: {
           source: 'simulation-data',
-          model: 'claude-3-sonnet',
+          model: 'gemini-1.5-pro',
           duration: Date.now(),
         },
         status: 'ready',
@@ -176,19 +173,10 @@ Generate a structured PRD with these sections:
 
 Make it professional, detailed, and actionable. Include specific metrics and timelines where possible.`;
 
-      const message = {
-        role: 'user',
-        content: prompt,
-      };
-
-      const response = await this.anthropic.messages.create({
-        model: 'claude-3-sonnet-20240229',
-        max_tokens: 4000,
-        temperature: 0.5,
-        messages: [message],
+      const response = await this.gemini.generateResponse(prompt, {
+        ventureContext: simulation.venture,
       });
-
-      const content = response.content[0].text;
+      const content = response.text;
       
       return {
         text: content,
@@ -333,7 +321,7 @@ Make it professional, detailed, and actionable. Include specific metrics and tim
         },
         generation: {
           source: 'simulation-data',
-          model: 'claude-3-sonnet',
+          model: 'gemini-1.5-pro',
           duration: Date.now(),
         },
         status: 'ready',
@@ -392,19 +380,10 @@ For each slide, provide:
 
 Make it compelling, data-driven, and investor-ready.`;
 
-      const message = {
-        role: 'user',
-        content: prompt,
-      };
-
-      const response = await this.anthropic.messages.create({
-        model: 'claude-3-sonnet-20240229',
-        max_tokens: 4000,
-        temperature: 0.5,
-        messages: [message],
+      const response = await this.gemini.generateResponse(prompt, {
+        ventureContext: simulation.venture,
       });
-
-      const content = response.content[0].text;
+      const content = response.text;
       return this.parsePitchDeckStructure(content);
     } catch (error) {
       logger.error('Error generating Pitch Deck content:', error);
@@ -449,7 +428,7 @@ Make it compelling, data-driven, and investor-ready.`;
         },
         generation: {
           source: 'simulation-data',
-          model: 'claude-3-sonnet',
+          model: 'gemini-1.5-pro',
           duration: Date.now(),
         },
         status: 'ready',
@@ -512,19 +491,10 @@ Generate a PRISM grant application with these sections:
 
 Focus on innovation, social impact, and feasibility. Include specific metrics and deliverables.`;
 
-      const message = {
-        role: 'user',
-        content: prompt,
-      };
-
-      const response = await this.anthropic.messages.create({
-        model: 'claude-3-sonnet-20240229',
-        max_tokens: 4000,
-        temperature: 0.5,
-        messages: [message],
+      const response = await this.gemini.generateResponse(prompt, {
+        ventureContext: simulation.venture,
       });
-
-      const content = response.content[0].text;
+      const content = response.text;
       
       return {
         text: content,
@@ -573,7 +543,7 @@ Focus on innovation, social impact, and feasibility. Include specific metrics an
         },
         generation: {
           source: 'simulation-data',
-          model: 'claude-3-sonnet',
+          model: 'gemini-1.5-pro',
           duration: Date.now(),
         },
         status: 'ready',
@@ -635,19 +605,10 @@ Generate a SISFS grant application with these sections:
 
 Focus on scalability, market potential, and team capability. Include realistic financial projections.`;
 
-      const message = {
-        role: 'user',
-        content: prompt,
-      };
-
-      const response = await this.anthropic.messages.create({
-        model: 'claude-3-sonnet-20240229',
-        max_tokens: 4000,
-        temperature: 0.5,
-        messages: [message],
+      const response = await this.gemini.generateResponse(prompt, {
+        ventureContext: simulation.venture,
       });
-
-      const content = response.content[0].text;
+      const content = response.text;
       
       return {
         text: content,
@@ -699,7 +660,7 @@ Focus on scalability, market potential, and team capability. Include realistic f
         },
         generation: {
           source: 'simulation-data',
-          model: 'claude-3-sonnet',
+          model: 'gemini-1.5-pro',
           duration: Date.now(),
         },
         status: 'ready',
@@ -783,7 +744,7 @@ Focus on scalability, market potential, and team capability. Include realistic f
         },
         generation: {
           source: 'simulation-data',
-          model: 'claude-3-sonnet',
+          model: 'gemini-1.5-pro',
           duration: Date.now(),
         },
         status: 'ready',
@@ -861,7 +822,7 @@ Focus on scalability, market potential, and team capability. Include realistic f
         },
         generation: {
           source: 'simulation-data',
-          model: 'claude-3-sonnet',
+          model: 'gemini-1.5-pro',
           duration: Date.now(),
         },
         status: 'ready',
@@ -1039,7 +1000,7 @@ Verified Venture Score (VVS): ${content.vvsScore}/100
 Certification Level: ${content.certificationLevel}
 Completed: ${content.completionDate}
 Duration: ${content.totalDuration} minutes
-Phases Completed: ${content.content.phasesCompleted}
+Phases Completed: ${content.phasesCompleted}
 
 This certificate demonstrates founder readiness and venture validation through rigorous AI-powered simulation and assessment.`;
   }
