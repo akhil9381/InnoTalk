@@ -6,6 +6,8 @@ InnoTalk is designed as a social entrepreneurship and innovation simulation syst
 
 The platform is built around dynamic scenarios, branching choices, live scoring, and AI-assisted feedback.
 
+The upgraded product direction is an AI-powered reality engine for social entrepreneurship. It should feel alive, multi-actor, and market-facing rather than scripted.
+
 ## 1. High-Level Architecture
 
 ```text
@@ -40,6 +42,10 @@ Frontend components:
 - decision buttons and freeform input
 - live metrics panel
 - event notifications and crisis popups
+- disruption timeline cards
+- mentor guidance panel
+- failure replay and rewind controls
+- gamification and badge indicators
 
 Frontend state responsibilities:
 - active simulation state
@@ -106,6 +112,7 @@ Stakeholder perspectives should include:
 - funder or grantmaker
 - community leader
 - NGO or ecosystem partner
+- jury-mode stakeholder seats for live demos
 
 Prompt style should resemble:
 - "You are a government officer evaluating a social innovation before public rollout."
@@ -123,6 +130,8 @@ Responsibilities:
 - support dynamic scenario generation
 - vary difficulty and stakeholder lens
 - introduce crisis events or resource shocks
+- preload real-world datasets and constraints by sector and geography
+- support pitch evaluator mode alongside simulation mode
 
 Example scenario shape:
 
@@ -155,6 +164,7 @@ Suggested score dimensions:
 - ethics score
 - trust score
 - policy readiness score
+- tradeoff explanations between the dimensions
 
 Example logic:
 
@@ -177,6 +187,8 @@ Responsibilities:
 - track progress
 - support backtracking
 - allow alternate-path exploration
+- enable failure replay from a weak phase
+- support multiplayer or jury mode state when activated
 
 Current frontend session handling:
 - [`src/context/EvaluationContext.tsx`](/C:/Users/akhil/Desktop/InnoTalk/src/context/EvaluationContext.tsx)
@@ -299,6 +311,11 @@ Optional:
 - crisis notifications
 - cohort mode
 - mentor override or review mode
+- multiplayer or jury mode
+- pitch evaluator mode
+- badges and levels
+- reality engine disruption scheduler
+- short-term versus long-term consequence timeline
 
 ## 8. How This Maps To The Current Repo
 
@@ -317,6 +334,8 @@ Still ideal to strengthen further:
 - crisis event scheduler
 - multiple simultaneous stakeholder reactions
 - exportable PDF report flow from the frontend simulation path
+- live multiplayer sockets for jury mode
+- dedicated pitch evaluator API and report view
 
 ## 9. Recommended Next Build Order
 

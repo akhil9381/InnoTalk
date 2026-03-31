@@ -16,6 +16,9 @@ const profile: StartupProfile = {
   solutionApproach: "Community health workers use mobile screening, referral support, and local trust networks to improve preventive care access.",
   model: "Clinic partnerships plus subscription support from employers and CSR programs.",
   stage: "Pilot",
+  difficulty: "realistic",
+  evaluationMode: "reality-engine",
+  juryMode: false,
 };
 
 describe("evaluation engine", () => {

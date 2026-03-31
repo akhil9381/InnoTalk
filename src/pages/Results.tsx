@@ -16,13 +16,16 @@ import {
   AlertCircle,
   Brain,
   QrCode,
+  RotateCcw,
   TrendingUp,
   DollarSign,
   Cpu,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useEvaluation } from "@/context/EvaluationContext";
-import { getDimensionLabel, type ReadinessDimension } from "@/lib/evaluation";
+import { getDimensionLabel, normalizeSession, type ReadinessDimension } from "@/lib/evaluation";
+import { buildShareSummary, buildVerificationCode, downloadArtifact } from "@/lib/reporting";
+import { toast } from "sonner";
 
 const dimensionIcons: Record<ReadinessDimension, typeof TrendingUp> = {
   needClarity: TrendingUp,
@@ -36,15 +39,49 @@ const dimensionIcons: Record<ReadinessDimension, typeof TrendingUp> = {
 const Results = () => {
   const { latestCompletedSession, currentSession } = useEvaluation();
   const session =
-    latestCompletedSession ??
-    (currentSession?.status === "completed" ? currentSession : null);
+    (currentSession?.status === "completed" ? normalizeSession(currentSession) : null) ??
+    (latestCompletedSession ? normalizeSession(latestCompletedSession) : null);
 
   const artifacts = [
-    { name: "Market Readiness Brief", type: "PDF", icon: FileText },
-    { name: "Stakeholder Navigation Deck", type: "PPTX", icon: Presentation },
-    { name: "Resource Allocation Plan", type: "DOC", icon: FileText },
-    { name: "Impact Sustainability Dashboard", type: "XLSX", icon: DollarSign },
+    { name: "Market Readiness Brief", type: "TXT", icon: FileText, key: "brief" },
+    { name: "Stakeholder Navigation Deck", type: "TXT", icon: Presentation, key: "deck" },
+    { name: "Resource Allocation Plan", type: "TXT", icon: FileText, key: "resource-plan" },
+    { name: "Impact Sustainability Dashboard", type: "TXT", icon: DollarSign, key: "dashboard" },
   ];
+
+  const verificationCode = buildVerificationCode(session);
+
+  const handleCertificateDownload = () => {
+    downloadArtifact(session, "certificate");
+    toast.success("Certificate downloaded");
+  };
+
+  const handleShare = async () => {
+    const shareText = buildShareSummary(session);
+    const shareUrl = `${window.location.origin}/results`;
+
+    if (navigator.share) {
+      await navigator.share({
+        title: `${session.profile.startupName} market readiness report`,
+        text: shareText,
+        url: shareUrl,
+      });
+      return;
+    }
+
+    await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
+    window.open(
+      `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`,
+      "_blank",
+      "noopener,noreferrer",
+    );
+    toast.success("Report summary copied and LinkedIn share opened");
+  };
+
+  const handleVerify = async () => {
+    await navigator.clipboard.writeText(verificationCode);
+    toast.success(`Verification code copied: ${verificationCode}`);
+  };
 
   if (!session) {
     return (
@@ -129,16 +166,17 @@ const Results = () => {
                 {session.readinessDecision}
               </div>
               <div className="mt-5 flex flex-wrap gap-3">
-                <Button variant="hero" size="sm">
+                <Button variant="hero" size="sm" onClick={handleCertificateDownload}>
                   <Award className="w-3 h-3 mr-1" /> Get Market Certificate
                 </Button>
-                <Button variant="hero-outline" size="sm">
+                <Button variant="hero-outline" size="sm" onClick={() => void handleShare()}>
                   <Share2 className="w-3 h-3 mr-1" /> Share on LinkedIn
                 </Button>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" onClick={() => void handleVerify()}>
                   <QrCode className="w-3 h-3 mr-1" /> Verify Report
                 </Button>
               </div>
+              <p className="mt-3 text-xs text-muted-foreground">Verification code: {verificationCode}</p>
             </div>
           </div>
         </motion.div>
@@ -151,6 +189,19 @@ const Results = () => {
             className="lg:col-span-2 glass rounded-xl p-6"
           >
             <h2 className="font-heading font-semibold text-lg text-foreground mb-6">Score Breakdown</h2>
+            <div className="grid grid-cols-2 gap-3 mb-6">
+              {[
+                ["Impact", session.scorecard.impact],
+                ["Financial Sustainability", session.scorecard.financialSustainability],
+                ["Ethics", session.scorecard.ethics],
+                ["Risk Index", session.scorecard.risk],
+              ].map(([label, value]) => (
+                <div key={label} className="rounded-xl bg-secondary/50 p-4">
+                  <div className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">{label}</div>
+                  <div className="mt-2 text-xl font-semibold text-primary">{value}</div>
+                </div>
+              ))}
+            </div>
             <div className="space-y-5">
               {Object.entries(session.dimensionScores).map(([dimension, score]) => {
                 const Icon = dimensionIcons[dimension as ReadinessDimension];
@@ -214,6 +265,54 @@ const Results = () => {
                   <p key={index} className="text-xs text-muted-foreground leading-relaxed">{item}</p>
                 ))}
               </div>
+              <div className="mt-4 rounded-xl bg-secondary/50 p-4">
+                <div className="text-xs uppercase tracking-[0.16em] text-primary">AI mentor summary</div>
+                <p className="mt-2 text-xs text-muted-foreground">{session.mentorTip}</p>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.36 }}
+              className="glass rounded-xl p-6"
+            >
+              <div className="flex items-center gap-2 mb-4">
+                <Brain className="w-4 h-4 text-primary" />
+                <h2 className="font-heading font-semibold text-foreground">Guidance and Roadmap</h2>
+              </div>
+              <div className="space-y-3">
+                {session.roadmap.map((item) => (
+                  <div key={`${item.timeline}-${item.title}`} className="rounded-lg bg-secondary/50 p-3">
+                    <div className="text-[11px] uppercase tracking-[0.16em] text-primary">{item.timeline}</div>
+                    <div className="mt-1 text-xs font-medium text-foreground">{item.title}</div>
+                    <p className="mt-2 text-xs text-muted-foreground">{item.focus}</p>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.37 }}
+              className="glass rounded-xl p-6"
+            >
+              <div className="flex items-center gap-2 mb-4">
+                <RotateCcw className="w-4 h-4 text-accent" />
+                <h2 className="font-heading font-semibold text-foreground">Failure Replay</h2>
+              </div>
+              <div className="space-y-3">
+                {session.failureReplay.length > 0 ? session.failureReplay.map((item) => (
+                  <div key={`${item.phaseId}-${item.issue}`} className="rounded-lg bg-secondary/50 p-3">
+                    <div className="text-xs font-medium text-foreground">Phase {item.phaseId}: {item.phaseName}</div>
+                    <p className="mt-1 text-[11px] text-muted-foreground">{item.issue}</p>
+                    <p className="mt-2 text-[11px] text-foreground">{item.betterAlternative}</p>
+                  </div>
+                )) : (
+                  <p className="text-xs text-muted-foreground">No major failure points were identified in this run.</p>
+                )}
+              </div>
             </motion.div>
 
             <motion.div
@@ -230,6 +329,11 @@ const Results = () => {
                 {artifacts.map((artifact, index) => (
                   <button
                     key={index}
+                    type="button"
+                    onClick={() => {
+                      downloadArtifact(session, artifact.key);
+                      toast.success(`${artifact.name} downloaded`);
+                    }}
                     className="w-full flex items-center justify-between p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors text-left"
                   >
                     <div className="flex items-center gap-3">

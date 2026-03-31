@@ -2,6 +2,7 @@ import { createContext, type ReactNode, useContext, useEffect, useState } from "
 import {
   applyPhaseResponse,
   createEmptySession,
+  normalizeSession,
   rebuildSessionFromResponses,
   type EvaluationSession,
   type StartupProfile,
@@ -13,11 +14,13 @@ type EvaluationContextValue = {
   startSession: (profile: StartupProfile) => void;
   submitPhaseAnswer: (answer: string) => void;
   revisePreviousPhase: () => void;
+  openSession: (sessionId: string) => void;
   resetCurrentSession: () => void;
   latestCompletedSession: EvaluationSession | null;
 };
 
 const STORAGE_KEY = "innotalk-evaluations";
+const ACTIVE_SESSION_KEY = "innotalk-active-session";
 
 const EvaluationContext = createContext<EvaluationContextValue | undefined>(undefined);
 
@@ -28,7 +31,7 @@ const readStoredSessions = () => {
 
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as EvaluationSession[]) : [];
+    return raw ? (JSON.parse(raw) as EvaluationSession[]).map((session) => normalizeSession(session)) : [];
   } catch {
     return [];
   }
@@ -37,13 +40,35 @@ const readStoredSessions = () => {
 export const EvaluationProvider = ({ children }: { children: ReactNode }) => {
   const [sessions, setSessions] = useState<EvaluationSession[]>(() => readStoredSessions());
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(() => {
+    if (typeof window === "undefined") {
+      return null;
+    }
+
     const stored = readStoredSessions();
+    const rememberedSessionId = window.localStorage.getItem(ACTIVE_SESSION_KEY);
+
+    if (rememberedSessionId && stored.some((session) => session.id === rememberedSessionId)) {
+      return rememberedSessionId;
+    }
+
     return stored.find((session) => session.status === "in-progress")?.id ?? null;
   });
 
   useEffect(() => {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
   }, [sessions]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    if (currentSessionId) {
+      window.localStorage.setItem(ACTIVE_SESSION_KEY, currentSessionId);
+    } else {
+      window.localStorage.removeItem(ACTIVE_SESSION_KEY);
+    }
+  }, [currentSessionId]);
 
   const currentSession = sessions.find((session) => session.id === currentSessionId) ?? null;
   const latestCompletedSession =
@@ -94,6 +119,10 @@ export const EvaluationProvider = ({ children }: { children: ReactNode }) => {
     setCurrentSessionId(null);
   };
 
+  const openSession = (sessionId: string) => {
+    setCurrentSessionId(sessionId);
+  };
+
   return (
     <EvaluationContext.Provider
       value={{
@@ -102,6 +131,7 @@ export const EvaluationProvider = ({ children }: { children: ReactNode }) => {
         startSession,
         submitPhaseAnswer,
         revisePreviousPhase,
+        openSession,
         resetCurrentSession,
         latestCompletedSession,
       }}

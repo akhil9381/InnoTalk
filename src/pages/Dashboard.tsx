@@ -11,16 +11,18 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useEvaluation } from "@/context/EvaluationContext";
 import { getDimensionLabel, type ReadinessDimension } from "@/lib/evaluation";
 
 const Dashboard = () => {
-  const { sessions, currentSession, latestCompletedSession } = useEvaluation();
+  const { sessions, currentSession, latestCompletedSession, openSession } = useEvaluation();
+  const navigate = useNavigate();
 
   const referenceSession = currentSession ?? latestCompletedSession;
   const completedCount = sessions.filter((session) => session.status === "completed").length;
   const inProgressCount = sessions.filter((session) => session.status === "in-progress").length;
+  const scorecard = referenceSession?.scorecard;
 
   return (
     <div className="min-h-screen bg-background">
@@ -91,6 +93,21 @@ const Dashboard = () => {
             <h2 className="font-heading font-semibold text-lg text-foreground mb-6">Market readiness breakdown</h2>
             {referenceSession ? (
               <div className="space-y-5">
+                {scorecard && (
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      ["Impact", scorecard.impact],
+                      ["Sustainability", scorecard.financialSustainability],
+                      ["Ethics", scorecard.ethics],
+                      ["Risk", scorecard.risk],
+                    ].map(([label, value]) => (
+                      <div key={label} className="rounded-xl bg-secondary/50 p-3">
+                        <div className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">{label}</div>
+                        <div className="mt-2 text-lg font-semibold text-primary">{value}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 {Object.entries(referenceSession.dimensionScores).map(([dimension, score]) => (
                   <div key={dimension}>
                     <div className="flex items-center justify-between mb-2">
@@ -154,6 +171,19 @@ const Dashboard = () => {
                       </span>
                     </div>
                     <p className="mt-3 text-xs text-muted-foreground">{session.readinessDecision}</p>
+                    <div className="mt-3 flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-xs"
+                        onClick={() => {
+                          openSession(session.id);
+                          navigate(session.status === "completed" ? "/results" : "/simulation");
+                        }}
+                      >
+                        {session.status === "completed" ? "Open Report" : "Resume"}
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -176,6 +206,9 @@ const Dashboard = () => {
                     <FileText className="w-3 h-3 mr-1" /> View Market Report
                   </Link>
                 </Button>
+                <div className="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground">
+                  Jury mode ready for live demos
+                </div>
               </div>
             </div>
           </motion.div>

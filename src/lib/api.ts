@@ -140,6 +140,9 @@ type EvaluationQuestionRequest = {
     solutionApproach: string;
     model: string;
     stage: string;
+    difficulty?: string;
+    evaluationMode?: string;
+    juryMode?: boolean;
   };
   previousResponses: Array<{
     phaseId: number;

@@ -8,6 +8,7 @@ The current implementation includes:
 - MongoDB for persisted backend data
 - Gemini-powered question generation and evaluation support
 - local frontend session persistence for the market-readiness simulation
+- an AI-powered reality engine layer with disruptions, mentor feedback, replay paths, and smart scorecards
 
 ## Run
 
@@ -99,6 +100,11 @@ The platform should support:
 - live scoring across multiple dimensions
 - session-based progress tracking
 - final summary and dashboard reporting
+- disruption events such as policy changes, funding cuts, backlash, and viral growth
+- stakeholder personalities across investor, government, community, and operator lenses
+- short-term versus long-term consequence timelines
+- failure replay, gamification, mentor guidance, and scenario customization
+- pitch evaluator mode and judge-friendly demo paths such as jury mode
 
 ## Feature Targets
 
