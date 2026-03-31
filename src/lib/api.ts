@@ -20,6 +20,8 @@ export type AuthTokens = {
   refreshToken: string;
 };
 
+export type LoginRole = "user" | "mentor";
+
 type AuthResponse = {
   message: string;
   user: AuthUser;
@@ -194,6 +196,82 @@ export type EvaluationQuestionResponse = {
   source: "gemini" | "fallback";
 };
 
+export type MentorDirectoryEntry = {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  fullName?: string;
+  email: string;
+  bio: string;
+  expertise: string[];
+  company: string;
+  designation: string;
+  rating: number;
+};
+
+export type MentorConversationSummary = {
+  conversationId: string;
+  user: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    fullName?: string;
+    email: string;
+  };
+  mentor: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    fullName?: string;
+    email: string;
+    expertise: string[];
+    company: string;
+    designation: string;
+  };
+  latestMessage: {
+    id: string;
+    senderRole: "user" | "mentor";
+    senderName: string;
+    message: string;
+    createdAt: string;
+  };
+  unreadCount: number;
+};
+
+export type MentorConversationDetail = {
+  messages: Array<{
+    _id: string;
+    message: string;
+    senderRole: "user" | "mentor";
+    senderName: string;
+    createdAt: string;
+  }>;
+  participants: {
+    user: {
+      _id: string;
+      firstName: string;
+      lastName: string;
+      fullName?: string;
+      email: string;
+    };
+    mentor: {
+      _id: string;
+      firstName: string;
+      lastName: string;
+      fullName?: string;
+      email: string;
+      expertise: string[];
+      company: string;
+      designation: string;
+    };
+  } | null;
+};
+
+export type EvaluationStatePayload = {
+  sessions: unknown[];
+  activeSessionId: string | null;
+};
+
 export const fetchEvaluationQuestion = async (
   payload: EvaluationQuestionRequest,
 ): Promise<EvaluationQuestionResponse> => {
@@ -227,6 +305,7 @@ export const registerUser = async (payload: {
   lastName: string;
   email: string;
   password: string;
+  role: LoginRole;
 }): Promise<AuthResponse> => {
   const response = await fetch(`${apiBaseUrl}/api/auth/register`, {
     method: "POST",
@@ -246,6 +325,7 @@ export const registerUser = async (payload: {
 export const loginUser = async (payload: {
   email: string;
   password: string;
+  loginAs: LoginRole;
 }): Promise<AuthResponse> => {
   const response = await fetch(`${apiBaseUrl}/api/auth/login`, {
     method: "POST",
@@ -379,4 +459,126 @@ export const fetchReport = async (
 
   const data = await response.json();
   return data.data as SimulationReportPayload;
+};
+
+export const fetchMentors = async (token: string): Promise<MentorDirectoryEntry[]> => {
+  const response = await fetch(`${apiBaseUrl}/api/mentor-support/mentors`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(await parseApiError(response));
+  }
+
+  const data = (await response.json()) as { data: MentorDirectoryEntry[] };
+  return data.data;
+};
+
+export const fetchMentorInbox = async (token: string): Promise<MentorConversationSummary[]> => {
+  const response = await fetch(`${apiBaseUrl}/api/mentor-support/inbox`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(await parseApiError(response));
+  }
+
+  const data = (await response.json()) as { data: MentorConversationSummary[] };
+  return data.data;
+};
+
+export const fetchMentorConversation = async (
+  token: string,
+  params: { mentorId?: string; userId?: string },
+): Promise<MentorConversationDetail> => {
+  const searchParams = new URLSearchParams();
+  if (params.mentorId) {
+    searchParams.set("mentorId", params.mentorId);
+  }
+  if (params.userId) {
+    searchParams.set("userId", params.userId);
+  }
+
+  const response = await fetch(
+    `${apiBaseUrl}/api/mentor-support/conversation?${searchParams.toString()}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(await parseApiError(response));
+  }
+
+  const data = (await response.json()) as { data: MentorConversationDetail };
+  return data.data;
+};
+
+export const sendMentorMessage = async (
+  token: string,
+  payload: { mentorId?: string; userId?: string; message: string },
+) => {
+  const response = await fetch(`${apiBaseUrl}/api/mentor-support/messages`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw new Error(await parseApiError(response));
+  }
+
+  const data = await response.json();
+  return data.data as {
+    _id: string;
+    message: string;
+    senderRole: "user" | "mentor";
+    senderName: string;
+    createdAt: string;
+  };
+};
+
+export const fetchEvaluationState = async (token: string): Promise<EvaluationStatePayload> => {
+  const response = await fetch(`${apiBaseUrl}/api/evaluations`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(await parseApiError(response));
+  }
+
+  const data = (await response.json()) as { data: EvaluationStatePayload };
+  return data.data;
+};
+
+export const syncEvaluationState = async (
+  token: string,
+  payload: EvaluationStatePayload,
+): Promise<EvaluationStatePayload> => {
+  const response = await fetch(`${apiBaseUrl}/api/evaluations/sync`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw new Error(await parseApiError(response));
+  }
+
+  const data = (await response.json()) as { data: EvaluationStatePayload };
+  return data.data;
 };

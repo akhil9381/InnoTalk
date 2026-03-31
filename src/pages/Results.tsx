@@ -121,8 +121,8 @@ const Results = () => {
             <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
             <span className="text-sm font-medium text-primary">Market Readiness Evaluation Complete</span>
           </div>
-          <h1 className="font-heading text-3xl md:text-5xl font-bold mb-4">
-            Your <span className="text-gradient-primary">Market Report</span>
+          <h1 className="font-heading text-3xl md:text-5xl font-bold mb-4 leading-[1.08]">
+            Your <span className="inline-block text-[1.03em] font-bold leading-none text-gradient-primary">Market Report</span>
           </h1>
           <p className="text-muted-foreground max-w-xl mx-auto">
             {session.profile.startupName} - {session.profile.sector} in {session.profile.geography}
@@ -161,7 +161,6 @@ const Results = () => {
               <h2 className="font-heading text-xl font-bold text-foreground mb-2">
                 Social Startup Market Readiness Score
               </h2>
-              <p className="text-sm text-muted-foreground mb-4">{session.readinessSummary}</p>
               <div className="inline-flex rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
                 {session.readinessDecision}
               </div>
@@ -178,6 +177,48 @@ const Results = () => {
               </div>
               <p className="mt-3 text-xs text-muted-foreground">Verification code: {verificationCode}</p>
             </div>
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.16 }}
+          className="glass rounded-2xl p-8 mb-8 max-w-6xl mx-auto border border-primary/20 shadow-[0_20px_60px_hsl(var(--primary)/0.12)]"
+        >
+          <div className="flex items-center gap-3 mb-6">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/12">
+              <Brain className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <h2 className="font-heading text-2xl font-bold text-foreground">Guidance and Roadmap</h2>
+              <p className="text-sm text-muted-foreground">
+                Follow this plan to close the most important gaps before the next market step.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {session.roadmap.map((item, index) => (
+              <div
+                key={`${item.timeline}-${item.title}`}
+                className="relative overflow-hidden rounded-2xl border border-border bg-secondary/40 p-5"
+              >
+                <div className="absolute left-0 top-0 h-full w-1 bg-gradient-primary" />
+                <div className="ml-3">
+                  <div className="inline-flex rounded-full bg-primary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
+                    {item.timeline}
+                  </div>
+                  <div className="mt-4 flex items-start gap-3">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-background text-sm font-bold text-primary">
+                      {index + 1}
+                    </div>
+                    <h3 className="min-w-0 truncate text-base font-semibold text-foreground">{item.title}</h3>
+                  </div>
+                  <p className="mt-4 text-sm leading-6 text-muted-foreground">{item.focus}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </motion.div>
 
@@ -244,7 +285,7 @@ const Results = () => {
                 {session.blindspots.map((blindspot, index) => (
                   <div key={index} className="flex items-start gap-2">
                     <AlertCircle className="w-3.5 h-3.5 text-accent shrink-0 mt-0.5" />
-                    <p className="text-xs text-muted-foreground leading-relaxed">{blindspot}</p>
+                    <p className="min-w-0 text-xs leading-relaxed text-muted-foreground">{blindspot}</p>
                   </div>
                 ))}
               </div>
@@ -274,27 +315,6 @@ const Results = () => {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.36 }}
-              className="glass rounded-xl p-6"
-            >
-              <div className="flex items-center gap-2 mb-4">
-                <Brain className="w-4 h-4 text-primary" />
-                <h2 className="font-heading font-semibold text-foreground">Guidance and Roadmap</h2>
-              </div>
-              <div className="space-y-3">
-                {session.roadmap.map((item) => (
-                  <div key={`${item.timeline}-${item.title}`} className="rounded-lg bg-secondary/50 p-3">
-                    <div className="text-[11px] uppercase tracking-[0.16em] text-primary">{item.timeline}</div>
-                    <div className="mt-1 text-xs font-medium text-foreground">{item.title}</div>
-                    <p className="mt-2 text-xs text-muted-foreground">{item.focus}</p>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.37 }}
               className="glass rounded-xl p-6"
             >
@@ -306,8 +326,8 @@ const Results = () => {
                 {session.failureReplay.length > 0 ? session.failureReplay.map((item) => (
                   <div key={`${item.phaseId}-${item.issue}`} className="rounded-lg bg-secondary/50 p-3">
                     <div className="text-xs font-medium text-foreground">Phase {item.phaseId}: {item.phaseName}</div>
-                    <p className="mt-1 text-[11px] text-muted-foreground">{item.issue}</p>
-                    <p className="mt-2 text-[11px] text-foreground">{item.betterAlternative}</p>
+                    <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">{item.issue}</p>
+                    <p className="mt-2 text-[11px] leading-relaxed text-foreground">{item.betterAlternative}</p>
                   </div>
                 )) : (
                   <p className="text-xs text-muted-foreground">No major failure points were identified in this run.</p>

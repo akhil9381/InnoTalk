@@ -8,7 +8,6 @@ require('dotenv').config();
 const connectDB = require('./config/database');
 const logger = require('./utils/logger');
 const errorHandler = require('./middleware/errorHandler');
-const { initializeRedis } = require('./config/redis');
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -19,6 +18,8 @@ const aiRoutes = require('./routes/ai');
 const artifactRoutes = require('./routes/artifacts');
 const analyticsRoutes = require('./routes/analytics');
 const ecosystemRoutes = require('./routes/ecosystem');
+const mentorSupportRoutes = require('./routes/mentorSupport');
+const evaluationRoutes = require('./routes/evaluations');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -85,6 +86,8 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/artifacts', artifactRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/ecosystem', ecosystemRoutes);
+app.use('/api/mentor-support', mentorSupportRoutes);
+app.use('/api/evaluations', evaluationRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {
@@ -103,10 +106,6 @@ async function startServer() {
     // Connect to MongoDB
     await connectDB();
     logger.info('Connected to MongoDB successfully');
-
-    // Initialize Redis
-    await initializeRedis();
-    logger.info('Connected to Redis successfully');
 
     // Start server
     app.listen(PORT, () => {

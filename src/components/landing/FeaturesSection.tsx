@@ -36,10 +36,10 @@ const FeaturesSection = () => {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <h2 className="font-heading text-3xl md:text-5xl font-bold mb-4">
-            Solve The <span className="text-gradient-accent">Real Readiness Problems</span>
+          <h2 className="font-heading text-3xl font-bold leading-[1.08] md:text-5xl mb-4">
+            Solve The <span className="inline-block text-[1.03em] font-bold leading-none text-gradient-accent">Real Readiness Problems</span>
           </h2>
-          <p className="text-muted-foreground max-w-xl mx-auto">
+          <p className="max-w-2xl mx-auto text-lg leading-8 text-muted-foreground">
             The platform is designed to close the four practical gaps that stop social startups from reaching the market responsibly.
           </p>
         </motion.div>
@@ -58,7 +58,7 @@ const FeaturesSection = () => {
                 <f.icon className="w-5 h-5 text-primary" />
               </div>
               <h3 className="font-heading font-semibold text-foreground mb-2">{f.title}</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
+              <p className="text-base leading-7 text-muted-foreground">{f.desc}</p>
             </motion.div>
           ))}
         </div>

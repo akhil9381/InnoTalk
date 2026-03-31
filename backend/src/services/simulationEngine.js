@@ -5,7 +5,6 @@ const marketService = require('./marketService');
 const vvsService = require('./vvsService');
 const biasDetectionService = require('./biasDetection');
 const logger = require('../utils/logger');
-const { getRedisClient } = require('../config/redis');
 
 class SimulationEngine {
   constructor() {
@@ -249,18 +248,6 @@ class SimulationEngine {
 
       await simulation.save();
 
-      // Cache phase state in Redis for real-time access
-      const redis = getRedisClient();
-      await redis.setEx(
-        `simulation:${simulationId}:phase:${phase}`,
-        3600, // 1 hour
-        JSON.stringify({
-          phase,
-          config: phaseConfig,
-          startTime: new Date().toISOString(),
-        })
-      );
-
       logger.info(`Phase ${phase} initialized for simulation ${simulationId}`);
       return simulation;
     } catch (error) {
@@ -464,19 +451,6 @@ Question:`;
       }
 
       await simulation.save();
-
-      // Update Redis cache
-      const redis = getRedisClient();
-      await redis.setEx(
-        `simulation:${simulationId}:current`,
-        3600,
-        JSON.stringify({
-          phase: simulation.currentPhase,
-          canAdvance,
-          vvsScore: simulation.vvsScore.overall,
-          lastResponse: userResponse,
-        })
-      );
 
       logger.info(`Response processed for simulation ${simulationId}, phase ${currentPhase}`);
 

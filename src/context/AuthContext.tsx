@@ -13,19 +13,26 @@ import {
   registerUser,
   type AuthTokens,
   type AuthUser,
+  type LoginRole,
 } from "@/lib/api";
 
 type AuthContextValue = {
   user: AuthUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<{ success: boolean; message: string }>;
+  tokens: AuthTokens | null;
+  login: (
+    email: string,
+    password: string,
+    loginAs: LoginRole,
+  ) => Promise<{ success: boolean; message: string; role?: string }>;
   register: (
     firstName: string,
     lastName: string,
     email: string,
     password: string,
-  ) => Promise<{ success: boolean; message: string }>;
+    role: LoginRole,
+  ) => Promise<{ success: boolean; message: string; role?: string }>;
   logout: () => Promise<void>;
 };
 
@@ -100,11 +107,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       user,
       isAuthenticated: Boolean(user),
       isLoading,
-      login: async (email, password) => {
+      tokens,
+      login: async (email, password, loginAs) => {
         try {
           const response = await loginUser({
             email: email.trim().toLowerCase(),
             password,
+            loginAs,
           });
 
           setTokens(response.tokens);
@@ -113,6 +122,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           return {
             success: true,
             message: response.message,
+            role: response.user.role,
           };
         } catch (error) {
           return {
@@ -121,13 +131,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           };
         }
       },
-      register: async (firstName, lastName, email, password) => {
+      register: async (firstName, lastName, email, password, role) => {
         try {
           const response = await registerUser({
             firstName: firstName.trim(),
             lastName: lastName.trim(),
             email: email.trim().toLowerCase(),
             password,
+            role,
           });
 
           setTokens(response.tokens);
@@ -136,6 +147,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           return {
             success: true,
             message: response.message,
+            role: response.user.role,
           };
         } catch (error) {
           return {

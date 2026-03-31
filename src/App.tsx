@@ -13,6 +13,7 @@ import Register from "./pages/Register.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
 import Simulation from "./pages/Simulation.tsx";
 import Results from "./pages/Results.tsx";
+import MentorSupport from "./pages/MentorSupport.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -31,10 +32,13 @@ const App = () => (
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
               </Route>
-              <Route element={<ProtectedRoute />}>
+              <Route element={<ProtectedRoute allowedRoles={["user", "admin", "partner"]} />}>
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/simulation" element={<Simulation />} />
                 <Route path="/results" element={<Results />} />
+              </Route>
+              <Route element={<ProtectedRoute allowedRoles={["user", "mentor"]} />}>
+                <Route path="/mentor-support" element={<MentorSupport />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>

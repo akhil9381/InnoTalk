@@ -8,7 +8,7 @@ const phases = [
   { phase: "2", name: "Community Discovery", desc: "Stress-test beneficiary needs, trust, and market adoption realities", icon: Users, color: "text-accent" },
   { phase: "3", name: "Solution Architecture", desc: "Test whether the solution works under real field constraints and limited resources", icon: Lightbulb, color: "text-primary" },
   { phase: "4", name: "Impact Model", desc: "Validate sustainability, affordability, and mission-aligned unit economics", icon: DollarSign, color: "text-accent" },
-  { phase: "5", name: "Implementation Path", desc: "Design partnerships, stakeholder navigation, and go-to-market rollout strategy", icon: Rocket, color: "text-primary" },
+  { phase: "5", name: "Mission Innovation Fit", desc: "Show why the venture is mission-driven, distinctive, and strong enough for responsible market entry", icon: Rocket, color: "text-primary" },
   { phase: "6", name: "Risk and Resilience", desc: "Map policy, operational, and community trust risks", icon: ShieldAlert, color: "text-accent" },
   { phase: "7", name: "Impact Report", desc: "Generate synthesis, evidence, and market-readiness artifacts", icon: FileText, color: "text-primary" },
   { phase: "8", name: "Funder Panel", desc: "Defend launch readiness with grant, CSR, and impact capital perspectives", icon: Presentation, color: "text-accent" },
@@ -25,10 +25,10 @@ const PhasesSection = () => {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <h2 className="font-heading text-3xl md:text-5xl font-bold mb-4">
-            The <span className="text-gradient-primary">8-Phase</span> Gauntlet
+          <h2 className="font-heading text-3xl font-bold leading-[1.08] md:text-5xl mb-4">
+            The <span className="inline-block text-[1.03em] font-bold leading-none text-gradient-primary">8-Phase</span> Gauntlet
           </h2>
-          <p className="text-muted-foreground max-w-xl mx-auto">
+          <p className="max-w-2xl mx-auto text-lg leading-8 text-muted-foreground">
             Each phase tests whether a social startup can solve the real market-entry problems shown in this platform: management pressure, scarce resources, stakeholder complexity, and sustainable impact delivery.
           </p>
         </motion.div>
@@ -44,13 +44,13 @@ const PhasesSection = () => {
               className="glass glass-hover rounded-xl p-5 group cursor-pointer transition-all duration-300"
             >
               <div className="flex items-center gap-2 mb-3">
-                <span className="text-xs font-mono text-muted-foreground">Phase {p.phase}</span>
+                <span className="text-sm font-mono text-muted-foreground">Phase {p.phase}</span>
               </div>
               <div className={`w-9 h-9 rounded-lg bg-secondary flex items-center justify-center mb-3`}>
                 <p.icon className={`w-4 h-4 ${p.color}`} />
               </div>
-              <h3 className="font-heading font-semibold text-sm text-foreground mb-1">{p.name}</h3>
-              <p className="text-xs text-muted-foreground leading-relaxed">{p.desc}</p>
+              <h3 className="font-heading text-base font-semibold text-foreground mb-1">{p.name}</h3>
+              <p className="text-base leading-7 text-muted-foreground">{p.desc}</p>
             </motion.div>
           ))}
         </div>

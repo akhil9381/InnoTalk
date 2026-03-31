@@ -1,7 +1,6 @@
 const { google } = require('googleapis');
 const axios = require('axios');
 const logger = require('../utils/logger');
-const { getRedisClient } = require('../config/redis');
 
 class MarketService {
   constructor() {
@@ -572,9 +571,17 @@ class MarketService {
   // Get cached data
   async getCachedData(key) {
     try {
-      const redis = getRedisClient();
-      const cached = await redis.get(key);
-      return cached ? JSON.parse(cached) : null;
+      const entry = this.cache.get(key);
+      if (!entry) {
+        return null;
+      }
+
+      if (Date.now() > entry.expiresAt) {
+        this.cache.delete(key);
+        return null;
+      }
+
+      return entry.value;
     } catch (error) {
       logger.error('Error getting cached data:', error);
       return null;
@@ -584,8 +591,10 @@ class MarketService {
   // Set cached data
   async setCachedData(key, data) {
     try {
-      const redis = getRedisClient();
-      await redis.setEx(key, 1800, JSON.stringify(data)); // 30 minutes
+      this.cache.set(key, {
+        value: data,
+        expiresAt: Date.now() + this.cacheTimeout,
+      });
     } catch (error) {
       logger.error('Error setting cached data:', error);
     }

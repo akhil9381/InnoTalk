@@ -149,15 +149,15 @@ export const evaluationPhases: EvaluationPhase[] = [
   },
   {
     id: 5,
-    name: "Stakeholder Navigation",
-    shortLabel: "Stakeholder",
-    prompt: "If your first market rollout depends on institutions, NGOs, schools, hospitals, self-help groups, or local government bodies, who can unblock adoption, who can stall it, and how will you win each of them?",
-    guidance: "Describe first partner institutions, anchor communities, stakeholder mapping, approvals, procurement gates, rollout sequencing, and how you handle conflicting interests before market expansion.",
-    placeholder: "Map the social ecosystem stakeholders who can approve, delay, block, or champion your market rollout and explain your plan for each...",
-    agentName: "Stakeholder Board",
-    agentRole: "Launch and stakeholder review",
-    keywords: ["launch", "pilot", "partner", "customer", "market", "channel", "rollout", "sales", "government", "approval", "stakeholder", "ngo", "procurement"],
-    dimensions: ["goToMarket", "communityTrust"],
+    name: "Mission Innovation Fit",
+    shortLabel: "Mission Fit",
+    prompt: "What makes this a mission-driven social venture with a genuinely innovative approach, and why is that combination strong enough to justify responsible market entry now?",
+    guidance: "Show what is distinctive about the venture, how the innovation serves a social mission, why it is not just a standard product, and how that difference matters in the market.",
+    placeholder: "Explain what makes this venture mission-driven, what is innovative about the approach, and why that combination is strong enough for market entry...",
+    agentName: "Mission Innovation Review",
+    agentRole: "Mission-driven innovation and market-fit review",
+    keywords: ["mission-driven", "social venture", "innovation", "distinctive", "novel", "impact model", "public value", "market relevance", "beneficiary", "difference", "responsible scale", "social entrepreneurship"],
+    dimensions: ["innovationFit", "communityTrust"],
   },
   {
     id: 6,
@@ -395,6 +395,12 @@ const buildFeedback = (phase: EvaluationPhase, answer: string, score: number) =>
   if (/(risk|compliance|fallback|contingency|safeguarding)/.test(normalized)) {
     strengths.push("Showed awareness of market-entry risks and operating constraints.");
   }
+  if (phase.id === 5 && /(innovation|distinct|mission|social venture|public value|novel)/.test(normalized)) {
+    strengths.push("Explained why the venture is genuinely mission-driven and not just a generic market product.");
+  }
+  if (phase.id === 5 && /(innovation|distinct|mission|social venture|public value|novel)/.test(normalized) && /(market|adoption|scale|customer|beneficiar)/.test(normalized)) {
+    strengths.push("Connected the social innovation story to real market relevance and adoption logic.");
+  }
 
   if (!/(data|pilot|evidence|survey|interview|metric|baseline)/.test(normalized)) {
     blindspots.push(`Add stronger evidence for ${phase.name.toLowerCase()} instead of relying on narrative alone.`);
@@ -407,6 +413,12 @@ const buildFeedback = (phase: EvaluationPhase, answer: string, score: number) =>
   }
   if (phase.id >= 5 && !/(launch|rollout|pilot|timeline|channel|market|sales)/.test(normalized)) {
     blindspots.push("The go-to-market path is not yet specific enough for a real launch decision.");
+  }
+  if (phase.id === 5 && !/(innovation|distinct|mission|social venture|public value|novel)/.test(normalized)) {
+    blindspots.push("It is still unclear what makes this a distinctive social venture rather than a standard solution.");
+  }
+  if (phase.id === 5 && !/(market|adoption|customer|beneficiar|buyer|scale)/.test(normalized)) {
+    blindspots.push("The answer does not yet show why this mission-driven innovation is strong enough for the market.");
   }
 
   if (strengths.length === 0) {
@@ -689,6 +701,9 @@ const buildGapAction = (gap: string, profile: StartupProfile, session: Evaluatio
   }
   if (normalized.includes("field") || normalized.includes("practical") || normalized.includes("resource") || normalized.includes("infrastructure")) {
     return `Strip ${profile.solutionApproach.toLowerCase()} down to a minimum viable field model and test whether it still works with limited staff, budget, or devices ${sectorTactic}.`;
+  }
+  if (normalized.includes("distinctive") || normalized.includes("standard solution") || normalized.includes("mission-driven") || normalized.includes("social venture") || normalized.includes("innovation")) {
+    return `Write a short differentiation note for ${profile.startupName} that compares the venture against standard alternatives, clarifies the mission logic, and shows why the innovation creates both public value and market relevance. Test that note with one founder mentor and one likely market stakeholder.`;
   }
 
   return `Turn this gap into one concrete validation sprint for ${profile.startupName}, assign an owner, define success criteria, and review the evidence before the next market decision. ${stageTactic}`;

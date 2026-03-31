@@ -33,8 +33,8 @@ const Dashboard = () => {
           animate={{ opacity: 1, y: 0 }}
           className="mb-10"
         >
-          <h1 className="font-heading text-3xl md:text-4xl font-bold mb-2">
-            Market readiness for <span className="text-gradient-primary">social startups</span>
+          <h1 className="font-heading text-3xl md:text-4xl font-bold mb-2 leading-[1.08]">
+            Market readiness for <span className="inline-block text-[1.03em] font-bold leading-none text-gradient-primary">social startups</span>
           </h1>
           <p className="text-muted-foreground">
             Track evaluations, compare readiness signals, and see which ventures are closest to market entry.
@@ -156,12 +156,12 @@ const Dashboard = () => {
                           {session.profile.sector} - {session.profile.geography}
                         </div>
                       </div>
-                      <div className="text-right">
+                      <div className="min-w-0 text-right">
                         <div className="text-sm font-semibold text-primary">{session.overallScore}</div>
                         <div className="text-xs text-muted-foreground">Score</div>
                       </div>
                       <span
-                        className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                        className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${
                           session.status === "completed"
                             ? "bg-primary/15 text-primary"
                             : "bg-accent/15 text-accent"

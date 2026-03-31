@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Menu, X, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const publicNavLinks = [
   { label: "Home", path: "/" },
@@ -14,14 +15,21 @@ const privateNavLinks = [
   { label: "Dashboard", path: "/dashboard" },
   { label: "Simulation", path: "/simulation" },
   { label: "Results", path: "/results" },
+  { label: "Mentor Support", path: "/mentor-support" },
 ];
+
+const mentorNavLinks = [{ label: "Mentor Support", path: "/mentor-support" }];
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated, logout, user } = useAuth();
-  const navLinks = isAuthenticated ? privateNavLinks : publicNavLinks;
+  const navLinks = !isAuthenticated
+    ? publicNavLinks
+    : user?.role === "mentor"
+      ? mentorNavLinks
+      : privateNavLinks;
 
   const handleLogout = async () => {
     await logout();
@@ -30,13 +38,15 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 glass">
-      <div className="container mx-auto px-6 h-16 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center">
+    <nav className="fixed top-4 left-0 right-0 z-50">
+      <div className="container mx-auto px-4 sm:px-6">
+        <div className="nav-shell mx-auto flex h-16 items-center justify-between rounded-2xl px-4 sm:px-6">
+        <Link to="/" className="group flex items-center gap-3">
+          <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-primary shadow-glow transition-transform duration-300 group-hover:scale-105">
             <Zap className="w-4 h-4 text-primary-foreground" />
+            <span className="absolute inset-0 rounded-xl bg-white/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
           </div>
-          <span className="font-heading text-lg font-bold text-foreground">InnoTalk</span>
+          <span className="font-heading text-lg font-bold text-foreground transition-colors duration-300 group-hover:text-primary">InnoTalk</span>
         </Link>
 
         {/* Desktop */}
@@ -45,10 +55,10 @@ const Navbar = () => {
             <Link
               key={link.path}
               to={link.path}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 ${
                 location.pathname === link.path
-                  ? "text-primary bg-primary/10"
-                  : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                  ? "text-primary bg-primary/10 shadow-[inset_0_0_0_1px_hsl(var(--primary)/0.18)]"
+                  : "text-muted-foreground hover:text-foreground hover:bg-secondary/80"
               }`}
             >
               {link.label}
@@ -57,19 +67,24 @@ const Navbar = () => {
         </div>
 
         <div className="hidden md:flex items-center gap-3">
+          <ThemeToggle />
           {isAuthenticated ? (
             <>
               <div className="text-right">
                 <div className="text-sm font-medium text-foreground">
                   {user?.fullName ?? `${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim()}
                 </div>
-                <div className="text-xs text-muted-foreground">{user?.email}</div>
+                <div className="text-xs text-muted-foreground">
+                  {user?.role === "mentor" ? "Mentor" : user?.email}
+                </div>
               </div>
               <Button variant="ghost" size="sm" onClick={() => void handleLogout()}>
                 Log Out
               </Button>
               <Button variant="hero" size="sm" asChild>
-                <Link to="/dashboard">Dashboard</Link>
+                <Link to={user?.role === "mentor" ? "/mentor-support" : "/dashboard"}>
+                  {user?.role === "mentor" ? "Inbox" : "Dashboard"}
+                </Link>
               </Button>
             </>
           ) : (
@@ -85,9 +100,10 @@ const Navbar = () => {
         </div>
 
         {/* Mobile toggle */}
-        <button className="md:hidden text-foreground" onClick={() => setIsOpen(!isOpen)}>
+        <button className="md:hidden text-foreground transition-transform duration-300 hover:scale-105" onClick={() => setIsOpen(!isOpen)}>
           {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
+        </div>
       </div>
 
       {/* Mobile menu */}
@@ -97,15 +113,16 @@ const Navbar = () => {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden glass border-t border-border"
+            className="md:hidden"
           >
-            <div className="container mx-auto px-6 py-4 flex flex-col gap-2">
+            <div className="container mx-auto px-4 sm:px-6 pt-3">
+              <div className="nav-shell flex flex-col gap-2 rounded-2xl px-4 py-4">
               {navLinks.map((link) => (
                 <Link
                   key={link.path}
                   to={link.path}
                   onClick={() => setIsOpen(false)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 ${
                     location.pathname === link.path
                       ? "text-primary bg-primary/10"
                       : "text-muted-foreground hover:text-foreground"
@@ -115,13 +132,16 @@ const Navbar = () => {
                 </Link>
               ))}
               <div className="flex gap-3 mt-2">
+                <ThemeToggle />
                 {isAuthenticated ? (
                   <>
                     <Button variant="ghost" size="sm" className="flex-1" onClick={() => void handleLogout()}>
                       Log Out
                     </Button>
                     <Button variant="hero" size="sm" className="flex-1" asChild>
-                      <Link to="/dashboard">Dashboard</Link>
+                      <Link to={user?.role === "mentor" ? "/mentor-support" : "/dashboard"}>
+                        {user?.role === "mentor" ? "Inbox" : "Dashboard"}
+                      </Link>
                     </Button>
                   </>
                 ) : (
@@ -134,6 +154,7 @@ const Navbar = () => {
                     </Button>
                   </>
                 )}
+              </div>
               </div>
             </div>
           </motion.div>

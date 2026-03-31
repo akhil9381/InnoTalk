@@ -1,4 +1,4 @@
-import { createContext, type ReactNode, useContext, useEffect, useState } from "react";
+import { createContext, type ReactNode, useContext, useEffect, useRef, useState } from "react";
 import {
   applyPhaseResponse,
   createEmptySession,
@@ -7,6 +7,8 @@ import {
   type EvaluationSession,
   type StartupProfile,
 } from "@/lib/evaluation";
+import { fetchEvaluationState, syncEvaluationState } from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
 
 type EvaluationContextValue = {
   sessions: EvaluationSession[];
@@ -38,6 +40,7 @@ const readStoredSessions = () => {
 };
 
 export const EvaluationProvider = ({ children }: { children: ReactNode }) => {
+  const { user, tokens } = useAuth();
   const [sessions, setSessions] = useState<EvaluationSession[]>(() => readStoredSessions());
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(() => {
     if (typeof window === "undefined") {
@@ -53,6 +56,28 @@ export const EvaluationProvider = ({ children }: { children: ReactNode }) => {
 
     return stored.find((session) => session.status === "in-progress")?.id ?? null;
   });
+  const [hasHydratedRemoteState, setHasHydratedRemoteState] = useState(false);
+  const isApplyingRemoteState = useRef(false);
+
+  const mergeSessions = (localSessions: EvaluationSession[], remoteSessions: EvaluationSession[]) => {
+    const merged = new Map<string, EvaluationSession>();
+
+    [...remoteSessions, ...localSessions].forEach((session) => {
+      const existing = merged.get(session.id);
+      if (!existing) {
+        merged.set(session.id, session);
+        return;
+      }
+
+      if (Date.parse(session.updatedAt) >= Date.parse(existing.updatedAt)) {
+        merged.set(session.id, session);
+      }
+    });
+
+    return Array.from(merged.values()).sort(
+      (first, second) => Date.parse(second.updatedAt) - Date.parse(first.updatedAt),
+    );
+  };
 
   useEffect(() => {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
@@ -69,6 +94,83 @@ export const EvaluationProvider = ({ children }: { children: ReactNode }) => {
       window.localStorage.removeItem(ACTIVE_SESSION_KEY);
     }
   }, [currentSessionId]);
+
+  useEffect(() => {
+    if (!tokens?.accessToken || !user || user.role === "mentor") {
+      setHasHydratedRemoteState(user?.role === "mentor");
+      return;
+    }
+
+    let ignore = false;
+
+    const hydrateRemoteState = async () => {
+      try {
+        const remoteState = await fetchEvaluationState(tokens.accessToken);
+        if (ignore) {
+          return;
+        }
+
+        const remoteSessions = (remoteState.sessions as EvaluationSession[]).map((session) =>
+          normalizeSession(session),
+        );
+        const localSessions = readStoredSessions();
+        const mergedSessions = mergeSessions(localSessions, remoteSessions);
+        const resolvedActiveSessionId =
+          remoteState.activeSessionId && mergedSessions.some((session) => session.id === remoteState.activeSessionId)
+            ? remoteState.activeSessionId
+            : currentSessionId && mergedSessions.some((session) => session.id === currentSessionId)
+              ? currentSessionId
+              : mergedSessions.find((session) => session.status === "in-progress")?.id ?? null;
+
+        isApplyingRemoteState.current = true;
+        setSessions(mergedSessions);
+        setCurrentSessionId(resolvedActiveSessionId);
+        setHasHydratedRemoteState(true);
+
+        const remoteChanged =
+          JSON.stringify(remoteSessions) !== JSON.stringify(mergedSessions) ||
+          (remoteState.activeSessionId || null) !== (resolvedActiveSessionId || null);
+
+        if (remoteChanged) {
+          await syncEvaluationState(tokens.accessToken, {
+            sessions: mergedSessions,
+            activeSessionId: resolvedActiveSessionId,
+          });
+        }
+      } catch {
+        if (!ignore) {
+          setHasHydratedRemoteState(true);
+        }
+      } finally {
+        window.setTimeout(() => {
+          isApplyingRemoteState.current = false;
+        }, 0);
+      }
+    };
+
+    void hydrateRemoteState();
+
+    return () => {
+      ignore = true;
+    };
+  }, [currentSessionId, tokens, user]);
+
+  useEffect(() => {
+    if (!tokens?.accessToken || !user || user.role === "mentor" || !hasHydratedRemoteState) {
+      return;
+    }
+
+    if (isApplyingRemoteState.current) {
+      return;
+    }
+
+    void syncEvaluationState(tokens.accessToken, {
+      sessions,
+      activeSessionId: currentSessionId,
+    }).catch(() => {
+      // Local state remains the source of truth if sync fails temporarily.
+    });
+  }, [currentSessionId, hasHydratedRemoteState, sessions, tokens, user]);
 
   const currentSession = sessions.find((session) => session.id === currentSessionId) ?? null;
   const latestCompletedSession =

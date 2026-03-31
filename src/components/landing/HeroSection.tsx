@@ -23,9 +23,9 @@ const HeroSection = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/30 bg-primary/5 mb-8">
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-5 py-2 mb-8">
               <span className="w-2 h-2 rounded-full bg-primary animate-pulse-glow" />
-              <span className="text-sm font-medium text-primary">AI Evaluation For Market-Ready Social Startups</span>
+              <span className="text-base font-semibold text-primary">AI Evaluation For Market-Ready Social Startups</span>
             </div>
           </motion.div>
 
@@ -33,10 +33,12 @@ const HeroSection = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.1 }}
-            className="font-heading text-5xl md:text-7xl font-bold leading-tight mb-6"
+            className="mx-auto max-w-5xl font-heading text-5xl font-bold leading-[1.02] md:text-7xl mb-6"
           >
-            Evaluate Social Startups.{" "}
-            <span className="text-gradient-primary">Decide If They Are Ready For Market.</span>
+            Evaluate Social Startups.
+            <span className="block pt-2 text-[1.03em] font-bold leading-none text-gradient-primary">
+              Decide If They Are Ready For Market.
+            </span>
           </motion.h1>
 
           <motion.p
@@ -82,8 +84,8 @@ const HeroSection = () => {
                   <stat.icon className="w-5 h-5 text-primary" />
                 </div>
                 <div className="text-left">
-                  <div className="text-sm font-semibold text-foreground">{stat.value}</div>
-                  <div className="text-xs text-muted-foreground">{stat.label}</div>
+                  <div className="text-base font-semibold text-foreground">{stat.value}</div>
+                  <div className="text-sm text-muted-foreground">{stat.label}</div>
                 </div>
               </div>
             ))}

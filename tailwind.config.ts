@@ -14,6 +14,13 @@ export default {
       },
     },
     extend: {
+      fontSize: {
+        xs: ["0.9rem", { lineHeight: "1.45" }],
+        sm: ["1.02rem", { lineHeight: "1.6" }],
+        base: ["1.12rem", { lineHeight: "1.7" }],
+        lg: ["1.22rem", { lineHeight: "1.7" }],
+        xl: ["1.38rem", { lineHeight: "1.5" }],
+      },
       fontFamily: {
         heading: ['Space Grotesk', 'sans-serif'],
         body: ['DM Sans', 'sans-serif'],
@@ -85,12 +92,22 @@ export default {
           "0%, 100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(-10px)" },
         },
+        "float-slow": {
+          "0%, 100%": { transform: "translate3d(0,0,0) scale(1)" },
+          "50%": { transform: "translate3d(0,-16px,0) scale(1.02)" },
+        },
+        "shimmer-x": {
+          "0%": { transform: "translateX(-140%)" },
+          "100%": { transform: "translateX(140%)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "pulse-glow": "pulse-glow 3s ease-in-out infinite",
         "float": "float 6s ease-in-out infinite",
+        "float-slow": "float-slow 10s ease-in-out infinite",
+        "shimmer-x": "shimmer-x 2.8s ease-in-out infinite",
       },
     },
   },

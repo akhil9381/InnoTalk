@@ -17,8 +17,8 @@ const CTASection = () => {
           viewport={{ once: true }}
           className="max-w-3xl mx-auto text-center"
         >
-          <h2 className="font-heading text-3xl md:text-5xl font-bold mb-6">
-            Ready to <span className="text-gradient-primary">Validate</span> Your Social Innovation?
+          <h2 className="font-heading text-3xl font-bold leading-[1.08] md:text-5xl mb-6">
+            Ready to <span className="inline-block text-[1.03em] font-bold leading-none text-gradient-primary">Validate</span> Your Social Innovation?
           </h2>
           <p className="text-muted-foreground text-lg mb-10 max-w-xl mx-auto">
             Join mission-driven founders building stronger solutions for communities, institutions, and underserved markets.

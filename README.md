@@ -140,7 +140,6 @@ AI:
 
 Data:
 - MongoDB
-- Redis for cache and session-adjacent backend behavior
 
 Optional future additions:
 - Socket.io for real-time crisis events and live simulation feel
@@ -155,7 +154,6 @@ Backend:
 - `PORT`
 - `FRONTEND_URL`
 - `MONGODB_URI`
-- `REDIS_URL`
 - `JWT_SECRET`
 - `JWT_EXPIRES_IN`
 - `JWT_REFRESH_SECRET`

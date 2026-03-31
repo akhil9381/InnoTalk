@@ -46,6 +46,300 @@ const initialProfile: StartupProfile = {
   juryMode: false,
 };
 
+const buildLocalFallbackOptions = (
+  phaseId: number,
+  profile: StartupProfile,
+): EvaluationQuestionResponse["options"] => {
+  const startupName = profile.startupName || "this social venture";
+  const beneficiaries = profile.beneficiaries || "the target beneficiaries";
+  const solution = profile.solutionApproach || profile.model || "the proposed approach";
+  const geography = profile.geography || "the target geography";
+
+  const optionsByPhase: Record<number, EvaluationQuestionResponse["options"]> = {
+    1: [
+      {
+        id: "option-1",
+        label: `Present field evidence and urgency data from ${geography}`,
+        consequence: `This gives ${startupName} a stronger need case because it shows the problem is real for ${beneficiaries}.`,
+        scoreHint: 85,
+      },
+      {
+        id: "option-2",
+        label: "Lead mostly with mission and founder conviction",
+        consequence: "This may sound inspiring, but investors will still see weak proof if there is not enough evidence behind it.",
+        scoreHint: 42,
+      },
+      {
+        id: "option-3",
+        label: "Use one pilot or partner example as the main proof point",
+        consequence: "This builds some credibility, but one example alone may not prove wider readiness.",
+        scoreHint: 68,
+      },
+    ],
+    2: [
+      {
+        id: "option-1",
+        label: `Show why ${beneficiaries} will trust and adopt ${solution}`,
+        consequence: `This improves adoption confidence because it addresses real reactions from the people who must use or support ${startupName}.`,
+        scoreHint: 84,
+      },
+      {
+        id: "option-2",
+        label: "Assume people will adopt once they hear the mission",
+        consequence: "Mission alone rarely removes trust, affordability, or usability barriers in the market.",
+        scoreHint: 38,
+      },
+      {
+        id: "option-3",
+        label: "Rely on one trusted intermediary to drive adoption",
+        consequence: "This can help early trust, but it may create dependence on a single channel or partner.",
+        scoreHint: 72,
+      },
+    ],
+    3: [
+      {
+        id: "option-1",
+        label: `Adapt ${solution} into a lower-cost field-ready version`,
+        consequence: `This makes ${startupName} more practical when budgets, staffing, or infrastructure are constrained.`,
+        scoreHint: 86,
+      },
+      {
+        id: "option-2",
+        label: "Keep the full model and expect the market to adapt",
+        consequence: "This increases delivery friction and weakens market practicality.",
+        scoreHint: 40,
+      },
+      {
+        id: "option-3",
+        label: "Limit rollout to better-resourced pilot environments first",
+        consequence: "This lowers short-term risk, but may delay proof for harder operating environments.",
+        scoreHint: 70,
+      },
+    ],
+    4: [
+      {
+        id: "option-1",
+        label: "Use a blended funding model with clear mission safeguards",
+        consequence: `This improves confidence that ${startupName} can stay financially viable without drifting away from the needs of ${beneficiaries}.`,
+        scoreHint: 83,
+      },
+      {
+        id: "option-2",
+        label: "Rely mainly on future grants and broad optimism",
+        consequence: "This weakens confidence in long-term sustainability if funding conditions change.",
+        scoreHint: 39,
+      },
+      {
+        id: "option-3",
+        label: "Start with one payer segment and expand once it proves stable",
+        consequence: "This is more realistic than a vague model, but still leaves resilience questions if the first payer segment stalls.",
+        scoreHint: 72,
+      },
+    ],
+    5: [
+      {
+        id: "option-1",
+        label: `Map the institutions and community actors in ${geography} who can unlock adoption`,
+        consequence: `This strengthens market entry because ${startupName} is being treated like an ecosystem rollout, not just a product launch.`,
+        scoreHint: 85,
+      },
+      {
+        id: "option-2",
+        label: "Push direct rollout and solve stakeholder resistance later",
+        consequence: "This can create avoidable delays if the actors who control access are ignored too early.",
+        scoreHint: 37,
+      },
+      {
+        id: "option-3",
+        label: "Use one anchor partner to validate the model before wider expansion",
+        consequence: "This improves legitimacy, but growth may become too dependent on a single institution.",
+        scoreHint: 71,
+      },
+    ],
+    6: [
+      {
+        id: "option-1",
+        label: "Document compliance, safeguarding, and fallback plans before public rollout",
+        consequence: "This shows responsible innovation discipline and reduces the chance of early policy or reputational shocks.",
+        scoreHint: 88,
+      },
+      {
+        id: "option-2",
+        label: "Launch first and fix legal or compliance issues later",
+        consequence: "This creates serious execution and trust risk if authorities or vulnerable users are affected.",
+        scoreHint: 34,
+      },
+      {
+        id: "option-3",
+        label: "Limit deployment to lower-risk use cases while building policy readiness",
+        consequence: "This lowers exposure, but may slow visible traction while the compliance base catches up.",
+        scoreHint: 76,
+      },
+    ],
+    7: [
+      {
+        id: "option-1",
+        label: `Track adoption, outcome, trust, and efficiency metrics for ${beneficiaries}`,
+        consequence: `This gives ${startupName} stronger proof that it is delivering measurable value rather than just activity.`,
+        scoreHint: 87,
+      },
+      {
+        id: "option-2",
+        label: "Rely on anecdotal stories and broad impact claims",
+        consequence: "This may sound compelling, but it will not satisfy serious reviewers, funders, or public partners.",
+        scoreHint: 36,
+      },
+      {
+        id: "option-3",
+        label: "Use one leading metric now and expand the evidence stack later",
+        consequence: "This is a useful start, but the proof may still feel too narrow for wider support.",
+        scoreHint: 69,
+      },
+    ],
+    8: [
+      {
+        id: "option-1",
+        label: "Make the final case with evidence of need, trust, delivery readiness, and policy preparedness",
+        consequence: `This gives the strongest argument that ${startupName} is ready for responsible market entry.`,
+        scoreHint: 89,
+      },
+      {
+        id: "option-2",
+        label: "Lead with mission and urgency even though major gaps remain",
+        consequence: "This can sound emotionally strong, but it leaves stakeholders worried about execution and scale risk.",
+        scoreHint: 35,
+      },
+      {
+        id: "option-3",
+        label: "Ask for one more protected pilot cycle before wider rollout",
+        consequence: "This may improve credibility if important gaps remain, but it also signals limited readiness for broader launch.",
+        scoreHint: 72,
+      },
+    ],
+  };
+
+  return (
+    optionsByPhase[phaseId] || [
+      {
+        id: "option-1",
+        label: `Answer with concrete proof, named stakeholders, and a realistic plan for ${geography}`,
+        consequence: `This gives ${startupName} the strongest responsible market-readiness case.`,
+        scoreHint: 84,
+      },
+      {
+        id: "option-2",
+        label: "Answer with a high-level vision but limited operational detail",
+        consequence: "This keeps the story compelling, but weakens confidence in execution and adoption.",
+        scoreHint: 48,
+      },
+      {
+        id: "option-3",
+        label: "Use one strong partner or pilot as the core justification",
+        consequence: "This creates moderate confidence, but leaves broader scale and resilience questions open.",
+        scoreHint: 69,
+      },
+    ]
+  );
+};
+
+const buildLocalFallbackQuestion = (
+  phase: (typeof evaluationPhases)[number],
+  profile: StartupProfile,
+): EvaluationQuestionResponse => {
+  const startupName = profile.startupName || "this social venture";
+  const geography = profile.geography || "the target geography";
+  const beneficiaries = profile.beneficiaries || "the target beneficiaries";
+  const solution = profile.solutionApproach || profile.model || "the proposed solution";
+
+  const backups: Record<number, Omit<EvaluationQuestionResponse, "source">> = {
+    1: {
+      stakeholder: "Impact Investor",
+      scenario: `An impact investor is reviewing whether ${startupName} solves a problem urgent enough to justify market support in ${geography}.`,
+      question: `What evidence would you present to prove that ${beneficiaries} face a problem urgent enough for ${startupName} to enter the market now?`,
+      guidance: "Use local proof, urgency, and stakeholder evidence instead of broad mission statements.",
+      rationale: "Phase backup question used because the API path was unavailable.",
+      options: buildLocalFallbackOptions(1, profile),
+      allowOther: true,
+    },
+    2: {
+      stakeholder: "End Customer Panel",
+      scenario: `${beneficiaries} and frontline institutions are deciding whether they would trust ${startupName}.`,
+      question: `What would make real users trust, try, and continue using ${solution}, and what would make them reject it quickly?`,
+      guidance: "Focus on trust, objections, affordability, usability, and local adoption behavior.",
+      rationale: "Phase backup question used because the API path was unavailable.",
+      options: buildLocalFallbackOptions(2, profile),
+      allowOther: true,
+    },
+    3: {
+      stakeholder: "Field Operator",
+      scenario: `A field operator in ${geography} is testing whether ${startupName} can work under practical constraints.`,
+      question: `How would you prove that ${solution} is still practical when budgets, staffing, devices, or infrastructure are limited?`,
+      guidance: "Show the minimum workable version and the tradeoffs required for real-world use.",
+      rationale: "Phase backup question used because the API path was unavailable.",
+      options: buildLocalFallbackOptions(3, profile),
+      allowOther: true,
+    },
+    4: {
+      stakeholder: "Funder Committee",
+      scenario: `A payer or funder is asking how ${startupName} stays financially sustainable without losing its mission.`,
+      question: `Who pays for this social innovation after launch, why will they keep paying, and how will you protect the mission under revenue pressure?`,
+      guidance: "Clarify payers, funding continuity, affordability, and mission protection.",
+      rationale: "Phase backup question used because the API path was unavailable.",
+      options: buildLocalFallbackOptions(4, profile),
+      allowOther: true,
+    },
+    5: {
+      stakeholder: "Stakeholder Board",
+      scenario: `Key institutions and community actors in ${geography} are deciding whether ${startupName} can be rolled out responsibly.`,
+      question: `Which stakeholders can unblock or stall the rollout of ${solution}, and how would you sequence them before broader adoption?`,
+      guidance: "Treat rollout like a stakeholder ecosystem problem, not just a product launch.",
+      rationale: "Phase backup question used because the API path was unavailable.",
+      options: buildLocalFallbackOptions(5, profile),
+      allowOther: true,
+    },
+    6: {
+      stakeholder: "Policy Reviewer",
+      scenario: `A policy and safeguarding review is examining whether ${startupName} can be made public safely in ${geography}.`,
+      question: `What legal, compliance, safeguarding, or reputational risks could interfere with launch, and what fallback plans do you already have?`,
+      guidance: "Call out approvals, duties, risks, and concrete safeguards before wider rollout.",
+      rationale: "Phase backup question used because the API path was unavailable.",
+      options: buildLocalFallbackOptions(6, profile),
+      allowOther: true,
+    },
+    7: {
+      stakeholder: "Evidence Panel",
+      scenario: `An evidence panel is deciding whether ${startupName} has enough proof to justify responsible scale.`,
+      question: `What metrics and proof signals would convince investors, institutions, and public partners that ${solution} creates measurable value?`,
+      guidance: "Include adoption, trust, outcomes, efficiency, and proof quality.",
+      rationale: "Phase backup question used because the API path was unavailable.",
+      options: buildLocalFallbackOptions(7, profile),
+      allowOther: true,
+    },
+    8: {
+      stakeholder: "Market Readiness Panel",
+      scenario: `A final panel is deciding whether ${startupName} is ready for wider market entry in ${geography}.`,
+      question: `Why is ${startupName} ready for market now, and what would convince investors, customers, and public stakeholders that you can execute responsibly?`,
+      guidance: "Make the case across impact, adoption, sustainability, and policy readiness at the same time.",
+      rationale: "Phase backup question used because the API path was unavailable.",
+      options: buildLocalFallbackOptions(8, profile),
+      allowOther: true,
+    },
+  };
+
+  return {
+    ...(backups[phase.id] || {
+      stakeholder: phase.agentName,
+      scenario: `${phase.agentName} is reviewing ${startupName} before wider adoption in ${geography}.`,
+      question: phase.prompt,
+      guidance: phase.guidance,
+      rationale: "Generic phase backup question used because a specific fallback was unavailable.",
+      options: buildLocalFallbackOptions(phase.id, profile),
+      allowOther: true,
+    }),
+    source: "fallback",
+  };
+};
+
 const Simulation = () => {
   const {
     currentSession,
@@ -59,13 +353,15 @@ const Simulation = () => {
   const [otherAnswer, setOtherAnswer] = useState("");
   const [generatedQuestion, setGeneratedQuestion] = useState<EvaluationQuestionResponse | null>(null);
   const [questionStatus, setQuestionStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
+  const activeSession =
+    currentSession && currentSession.status !== "completed" ? currentSession : null;
 
   const activePhase =
-    currentSession && currentSession.status !== "completed"
-      ? evaluationPhases[currentSession.currentPhaseIndex]
+    activeSession
+      ? evaluationPhases[activeSession.currentPhaseIndex]
       : null;
 
-  const completedPhases = currentSession?.responses.length ?? 0;
+  const completedPhases = activeSession?.responses.length ?? 0;
   const progress = Math.round((completedPhases / evaluationPhases.length) * 100);
 
   const canStartSession = [
@@ -80,8 +376,8 @@ const Simulation = () => {
     profile.difficulty,
     profile.evaluationMode,
   ].every((value) => value.trim().length > 0);
-  const latestResponse = currentSession?.responses[currentSession.responses.length - 1] ?? null;
-  const scorecard = currentSession?.scorecard;
+  const latestResponse = activeSession?.responses[activeSession.responses.length - 1] ?? null;
+  const scorecard = activeSession?.scorecard;
 
   const scorecards = scorecard
     ? [
@@ -112,11 +408,23 @@ const Simulation = () => {
       ]
     : [];
 
+  const normalizeQuestionResponse = (
+    response: EvaluationQuestionResponse,
+    phaseId: number,
+    sessionProfile: StartupProfile,
+  ): EvaluationQuestionResponse => ({
+    ...response,
+    options:
+      response.options && response.options.length > 0
+        ? response.options
+        : buildLocalFallbackOptions(phaseId, sessionProfile),
+  });
+
   useEffect(() => {
     let cancelled = false;
 
     const loadQuestion = async () => {
-      if (!currentSession || !activePhase || currentSession.status === "completed") {
+      if (!activeSession || !activePhase) {
         setGeneratedQuestion(null);
         setQuestionStatus("idle");
         return;
@@ -133,8 +441,8 @@ const Simulation = () => {
             guidance: activePhase.guidance,
             dimensions: activePhase.dimensions,
           },
-          startupProfile: currentSession.profile,
-          previousResponses: currentSession.responses.map((item) => ({
+          startupProfile: activeSession.profile,
+          previousResponses: activeSession.responses.map((item) => ({
             phaseId: item.phaseId,
             phaseName: item.phaseName,
             answer: item.answer,
@@ -144,23 +452,14 @@ const Simulation = () => {
         });
 
         if (!cancelled) {
-          setGeneratedQuestion(response);
+          setGeneratedQuestion(normalizeQuestionResponse(response, activePhase.id, activeSession.profile));
           setQuestionStatus("ready");
           setSelectedOptionId(null);
           setOtherAnswer("");
         }
       } catch (error) {
         if (!cancelled) {
-          setGeneratedQuestion({
-            stakeholder: activePhase.agentName,
-            scenario: `${activePhase.agentName} is testing your readiness for the current phase.`,
-            question: activePhase.prompt,
-            guidance: activePhase.guidance,
-            rationale: "Default question used because the Gemini request was unavailable.",
-            options: [],
-            allowOther: true,
-            source: "fallback",
-          });
+          setGeneratedQuestion(buildLocalFallbackQuestion(activePhase, activeSession.profile));
           setQuestionStatus("error");
           setSelectedOptionId(null);
           setOtherAnswer("");
@@ -173,7 +472,7 @@ const Simulation = () => {
     return () => {
       cancelled = true;
     };
-  }, [activePhase, currentSession]);
+  }, [activePhase, activeSession]);
 
   const handleProfileChange = (field: keyof StartupProfile, value: string) => {
     setProfile((prev) => ({
@@ -234,7 +533,7 @@ const Simulation = () => {
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       <div className="flex-1 pt-16">
-        {!currentSession && (
+        {!activeSession && (
           <div className="container mx-auto px-6 py-10">
             <div className="max-w-5xl mx-auto">
               <div className="glass rounded-2xl p-8">
@@ -413,7 +712,7 @@ const Simulation = () => {
           </div>
         )}
 
-        {currentSession && (
+        {activeSession && (
           <div className="container mx-auto px-6 py-8">
             <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
               <div className="glass rounded-2xl p-6">
@@ -421,10 +720,10 @@ const Simulation = () => {
                   <div>
                     <p className="text-xs uppercase tracking-[0.18em] text-primary">Active evaluation</p>
                     <h2 className="mt-2 font-heading text-xl font-semibold text-foreground">
-                      {currentSession.profile.startupName}
+                      {activeSession.profile.startupName}
                     </h2>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      {currentSession.profile.sector} in {currentSession.profile.geography}
+                      {activeSession.profile.sector} in {activeSession.profile.geography}
                     </p>
                     <p className="mt-1 text-xs text-muted-foreground">
                       {currentSession.profile.evaluationMode === "pitch-evaluator" ? "Pitch Evaluator Mode" : "AI-Powered Reality Engine"} · {currentSession.profile.difficulty} difficulty
@@ -446,7 +745,7 @@ const Simulation = () => {
                 <div className="mt-6 space-y-2">
                   {evaluationPhases.map((phase, index) => {
                     const isDone = index < completedPhases;
-                    const isActive = currentSession.status !== "completed" && index === currentSession.currentPhaseIndex;
+                    const isActive = index === activeSession.currentPhaseIndex;
                     return (
                       <div
                         key={phase.id}
@@ -471,9 +770,9 @@ const Simulation = () => {
                 <div className="mt-6 rounded-xl bg-secondary/60 p-4">
                   <h3 className="text-sm font-medium text-foreground">Current score</h3>
                   <div className="mt-2 font-heading text-3xl font-bold text-primary">
-                    {currentSession.overallScore}
+                    {activeSession.overallScore}
                   </div>
-                  <p className="mt-2 text-xs text-muted-foreground">{currentSession.readinessDecision}</p>
+                  <p className="mt-2 text-xs text-muted-foreground">{activeSession.readinessDecision}</p>
                 </div>
 
                 <div className="mt-6 space-y-3">
@@ -491,24 +790,24 @@ const Simulation = () => {
                   ))}
                 </div>
 
-                {currentSession.activeDisruption && (
+                {activeSession.activeDisruption && (
                     <div className="mt-6 rounded-xl border border-accent/30 bg-accent/10 p-4">
                       <div className="flex items-start gap-3">
                         <AlertTriangle className="mt-0.5 h-4 w-4 text-accent" />
                         <div>
                           <p className="text-xs uppercase tracking-[0.16em] text-accent">Crisis popup alert</p>
                           <h3 className="mt-2 text-sm font-semibold text-foreground">
-                            {currentSession.activeDisruption.title}
+                            {activeSession.activeDisruption.title}
                           </h3>
                           <p className="mt-2 text-xs text-foreground">
-                            {currentSession.activeDisruption.impact}
+                            {activeSession.activeDisruption.impact}
                           </p>
                       </div>
                     </div>
                   </div>
                 )}
 
-                {currentSession.profile.juryMode && (
+                {activeSession.profile.juryMode && (
                   <div className="mt-6 rounded-xl border border-border bg-background/40 p-4">
                     <h3 className="text-sm font-medium text-foreground">Jury mode</h3>
                     <div className="mt-3 grid gap-3">
@@ -528,22 +827,22 @@ const Simulation = () => {
               </div>
 
               <div className="glass rounded-2xl p-6">
-                {currentSession.status === "completed" ? (
+                {activeSession.status === "completed" ? (
                   <div className="mx-auto max-w-3xl">
                     <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-4 py-1.5">
                       <CheckCircle2 className="h-4 w-4 text-primary" />
                       <span className="text-sm font-medium text-primary">Evaluation complete</span>
                     </div>
                     <h1 className="mt-5 font-heading text-3xl font-bold text-foreground">
-                      {currentSession.readinessDecision}
+                      {activeSession.readinessDecision}
                     </h1>
-                    <p className="mt-3 text-muted-foreground">{currentSession.readinessSummary}</p>
+                    <p className="mt-3 text-muted-foreground">{activeSession.readinessSummary}</p>
 
                     <div className="mt-8 grid gap-5 md:grid-cols-2">
                       <div className="rounded-2xl bg-secondary/60 p-5">
                         <h2 className="font-heading text-lg font-semibold text-foreground">Top strengths</h2>
                         <div className="mt-4 space-y-3">
-                          {currentSession.strengths.map((item, index) => (
+                          {activeSession.strengths.map((item, index) => (
                             <div key={index} className="flex gap-3 text-sm text-muted-foreground">
                               <Target className="mt-0.5 h-4 w-4 text-primary" />
                               <span>{item}</span>
@@ -554,7 +853,7 @@ const Simulation = () => {
                       <div className="rounded-2xl bg-secondary/60 p-5">
                         <h2 className="font-heading text-lg font-semibold text-foreground">Critical gaps</h2>
                         <div className="mt-4 space-y-3">
-                          {currentSession.blindspots.map((item, index) => (
+                          {activeSession.blindspots.map((item, index) => (
                             <div key={index} className="flex gap-3 text-sm text-muted-foreground">
                               <AlertTriangle className="mt-0.5 h-4 w-4 text-accent" />
                               <span>{item}</span>
@@ -568,10 +867,10 @@ const Simulation = () => {
                       <div className="rounded-2xl bg-secondary/60 p-5">
                         <h2 className="font-heading text-lg font-semibold text-foreground">Gamification</h2>
                         <p className="mt-3 text-sm text-muted-foreground">
-                          Level: <span className="font-medium text-foreground">{currentSession.level}</span>
+                          Level: <span className="font-medium text-foreground">{activeSession.level}</span>
                         </p>
                         <div className="mt-4 flex flex-wrap gap-2">
-                          {currentSession.badges.length > 0 ? currentSession.badges.map((badge) => (
+                          {activeSession.badges.length > 0 ? activeSession.badges.map((badge) => (
                             <div key={badge} className="rounded-full bg-primary/10 px-3 py-1 text-xs text-primary">
                               {badge}
                             </div>
@@ -583,7 +882,7 @@ const Simulation = () => {
                       <div className="rounded-2xl bg-secondary/60 p-5">
                         <h2 className="font-heading text-lg font-semibold text-foreground">Failure replay system</h2>
                         <div className="mt-4 space-y-3">
-                          {currentSession.failureReplay.length > 0 ? currentSession.failureReplay.map((item) => (
+                          {activeSession.failureReplay.length > 0 ? activeSession.failureReplay.map((item) => (
                             <div key={`${item.phaseId}-${item.issue}`} className="rounded-xl bg-background/60 p-3">
                               <div className="text-sm font-medium text-foreground">Phase {item.phaseId}: {item.phaseName}</div>
                               <p className="mt-1 text-xs text-muted-foreground">{item.issue}</p>
@@ -599,7 +898,7 @@ const Simulation = () => {
                     <div className="mt-8 rounded-2xl bg-secondary/60 p-5">
                       <h2 className="font-heading text-lg font-semibold text-foreground">Dimension scores</h2>
                       <div className="mt-5 grid gap-4 md:grid-cols-2">
-                        {Object.entries(currentSession.dimensionScores).map(([dimension, score]) => (
+                        {Object.entries(activeSession.dimensionScores).map(([dimension, score]) => (
                           <div key={dimension}>
                             <div className="mb-2 flex items-center justify-between text-sm">
                           <span className="text-foreground">{getDimensionLabel(dimension as ReadinessDimension)}</span>
@@ -612,7 +911,7 @@ const Simulation = () => {
                     </div>
 
                     <div className="mt-8 flex flex-wrap gap-3">
-                      {currentSession.failureReplay.length > 0 && (
+                      {activeSession.failureReplay.length > 0 && (
                         <Button variant="outline" onClick={revisePreviousPhase}>
                           Replay Weak Point <RotateCcw className="ml-1 h-4 w-4" />
                         </Button>
@@ -640,7 +939,7 @@ const Simulation = () => {
                               Phase {activePhase.id}
                             </p>
                             <h1 className="font-heading text-2xl font-bold text-foreground">
-                              {currentSession.profile.evaluationMode === "pitch-evaluator" ? `${activePhase.name} Pitch Review` : activePhase.name}
+                              {activeSession.profile.evaluationMode === "pitch-evaluator" ? `${activePhase.name} Pitch Review` : activePhase.name}
                             </h1>
                           </div>
                         </div>
@@ -858,7 +1157,7 @@ const Simulation = () => {
                               Choose a response path, review the likely outcome, and submit when you are ready. The next scenario will adapt from this choice.
                             </p>
                             <div className="flex gap-3">
-                              {currentSession.responses.length > 0 && (
+                              {activeSession.responses.length > 0 && (
                                 <Button variant="outline" onClick={revisePreviousPhase}>
                                   Go Back One Phase
                                 </Button>
@@ -887,3 +1186,5 @@ const Simulation = () => {
 };
 
 export default Simulation;
+
+

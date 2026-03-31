@@ -13,6 +13,7 @@ const registerSchema = Joi.object({
   lastName: Joi.string().min(2).max(50).required(),
   email: Joi.string().email().required(),
   password: Joi.string().min(8).required(),
+  role: Joi.string().valid('user', 'mentor').required(),
   phone: Joi.string().pattern(/^[+]?[\d\s-()]+$/).optional(),
   profile: Joi.object({
     persona: Joi.string().valid('aspiring-founder', 'intrapreneur', 'student-innovator', 'serial-entrepreneur').optional(),
@@ -32,6 +33,7 @@ const registerSchema = Joi.object({
 const loginSchema = Joi.object({
   email: Joi.string().email().required(),
   password: Joi.string().required(),
+  loginAs: Joi.string().valid('user', 'mentor').required(),
 });
 
 const forgotPasswordSchema = Joi.object({
@@ -59,7 +61,7 @@ router.post('/register', registerRateLimit, async (req, res) => {
       });
     }
 
-    const { firstName, lastName, email, password, phone, profile } = value;
+    const { firstName, lastName, email, password, role, phone, profile } = value;
 
     // Check if user already exists
     const existingUser = await User.findByEmail(email);
@@ -76,6 +78,7 @@ router.post('/register', registerRateLimit, async (req, res) => {
       lastName,
       email,
       password,
+      role,
       phone,
       profile: {
         ...profile,
@@ -147,7 +150,7 @@ router.post('/login', loginRateLimit, async (req, res) => {
       });
     }
 
-    const { email, password } = value;
+    const { email, password, loginAs } = value;
 
     // Find user with password
     const user = await User.findByEmail(email).select('+password');
@@ -186,6 +189,20 @@ router.post('/login', loginRateLimit, async (req, res) => {
 
     // Reset login attempts on successful login
     await user.resetLoginAttempts();
+
+    if (loginAs === 'mentor' && user.role !== 'mentor') {
+      return res.status(403).json({
+        error: 'Role mismatch',
+        message: 'This account is not registered as a mentor.',
+      });
+    }
+
+    if (loginAs === 'user' && user.role === 'mentor') {
+      return res.status(403).json({
+        error: 'Role mismatch',
+        message: 'This is a mentor account. Please log in as a mentor.',
+      });
+    }
 
     // Generate tokens
     const { accessToken, refreshToken } = generateTokens(user._id);
