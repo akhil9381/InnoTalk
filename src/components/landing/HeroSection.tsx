@@ -3,8 +3,11 @@ import { motion } from "framer-motion";
 import { ArrowRight, Brain, Shield, Target } from "lucide-react";
 import { Link } from "react-router-dom";
 import heroBg from "@/assets/hero-bg.jpg";
+import { useAuth } from "@/context/AuthContext";
 
 const HeroSection = () => {
+  const { isAuthenticated } = useAuth();
+
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden">
       <div className="absolute inset-0">
@@ -52,13 +55,13 @@ const HeroSection = () => {
             className="flex flex-col sm:flex-row gap-4 justify-center mb-16"
           >
             <Button variant="hero" size="lg" className="text-base px-8" asChild>
-              <Link to="/simulation">
-              Start Readiness Evaluation <ArrowRight className="w-4 h-4 ml-1" />
+              <Link to={isAuthenticated ? "/dashboard" : "/login"}>
+                {isAuthenticated ? "Open Dashboard" : "Login to Continue"} <ArrowRight className="w-4 h-4 ml-1" />
               </Link>
             </Button>
             <Button variant="hero-outline" size="lg" className="text-base px-8" asChild>
-              <Link to="/dashboard">
-              Explore Demo Journey
+              <Link to={isAuthenticated ? "/simulation" : "/register"}>
+                {isAuthenticated ? "Start Readiness Evaluation" : "Create an Account"}
               </Link>
             </Button>
           </motion.div>

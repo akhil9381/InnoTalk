@@ -2,8 +2,11 @@ import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 
 const CTASection = () => {
+  const { isAuthenticated } = useAuth();
+
   return (
     <section className="py-24 relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-glow" />
@@ -22,13 +25,13 @@ const CTASection = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button variant="hero" size="lg" className="text-base px-10" asChild>
-              <Link to="/simulation">
-              Start Impact Simulation <ArrowRight className="w-4 h-4 ml-1" />
+              <Link to={isAuthenticated ? "/simulation" : "/login"}>
+                {isAuthenticated ? "Start Impact Simulation" : "Login to Access"} <ArrowRight className="w-4 h-4 ml-1" />
               </Link>
             </Button>
             <Button variant="hero-outline" size="lg" className="text-base px-10" asChild>
-              <Link to="/results">
-              View Impact Report
+              <Link to={isAuthenticated ? "/results" : "/register"}>
+                {isAuthenticated ? "View Impact Report" : "Register Now"}
               </Link>
             </Button>
           </div>

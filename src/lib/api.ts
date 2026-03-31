@@ -1,6 +1,31 @@
 export const apiBaseUrl =
   import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "") || "http://localhost:3001";
 
+export type AuthUser = {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  fullName?: string;
+  email: string;
+  role: string;
+  isActive: boolean;
+  security?: {
+    emailVerified?: boolean;
+    lastLogin?: string;
+  };
+};
+
+export type AuthTokens = {
+  accessToken: string;
+  refreshToken: string;
+};
+
+type AuthResponse = {
+  message: string;
+  user: AuthUser;
+  tokens: AuthTokens;
+};
+
 export type SimulationFlowMetrics = {
   readiness: number;
   impact: number;
@@ -186,6 +211,85 @@ export const fetchEvaluationQuestion = async (
 
   const data = await response.json();
   return data.data as EvaluationQuestionResponse;
+};
+
+const parseApiError = async (response: Response) => {
+  try {
+    const data = await response.json();
+    return data.message || data.error || "Request failed";
+  } catch {
+    return `Request failed with status ${response.status}`;
+  }
+};
+
+export const registerUser = async (payload: {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+}): Promise<AuthResponse> => {
+  const response = await fetch(`${apiBaseUrl}/api/auth/register`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw new Error(await parseApiError(response));
+  }
+
+  return (await response.json()) as AuthResponse;
+};
+
+export const loginUser = async (payload: {
+  email: string;
+  password: string;
+}): Promise<AuthResponse> => {
+  const response = await fetch(`${apiBaseUrl}/api/auth/login`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw new Error(await parseApiError(response));
+  }
+
+  return (await response.json()) as AuthResponse;
+};
+
+export const fetchCurrentUser = async (token: string): Promise<AuthUser> => {
+  const response = await fetch(`${apiBaseUrl}/api/auth/me`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(await parseApiError(response));
+  }
+
+  const data = (await response.json()) as { user: AuthUser };
+  return data.user;
+};
+
+export const logoutUser = async (token: string) => {
+  const response = await fetch(`${apiBaseUrl}/api/auth/logout`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(await parseApiError(response));
+  }
+
+  return response.json();
 };
 
 export const fetchScenario = async (

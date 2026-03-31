@@ -1,10 +1,15 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "@/context/AuthContext";
 
-const navLinks = [
+const publicNavLinks = [
+  { label: "Home", path: "/" },
+];
+
+const privateNavLinks = [
   { label: "Home", path: "/" },
   { label: "Dashboard", path: "/dashboard" },
   { label: "Simulation", path: "/simulation" },
@@ -14,6 +19,15 @@ const navLinks = [
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { isAuthenticated, logout, user } = useAuth();
+  const navLinks = isAuthenticated ? privateNavLinks : publicNavLinks;
+
+  const handleLogout = async () => {
+    await logout();
+    setIsOpen(false);
+    navigate("/");
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 glass">
@@ -43,12 +57,31 @@ const Navbar = () => {
         </div>
 
         <div className="hidden md:flex items-center gap-3">
-          <Button variant="ghost" size="sm" asChild>
-            <Link to="/dashboard">Dashboard</Link>
-          </Button>
-          <Button variant="hero" size="sm" asChild>
-            <Link to="/simulation">Launch Evaluation</Link>
-          </Button>
+          {isAuthenticated ? (
+            <>
+              <div className="text-right">
+                <div className="text-sm font-medium text-foreground">
+                  {user?.fullName ?? `${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim()}
+                </div>
+                <div className="text-xs text-muted-foreground">{user?.email}</div>
+              </div>
+              <Button variant="ghost" size="sm" onClick={() => void handleLogout()}>
+                Log Out
+              </Button>
+              <Button variant="hero" size="sm" asChild>
+                <Link to="/dashboard">Dashboard</Link>
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/login">Login</Link>
+              </Button>
+              <Button variant="hero" size="sm" asChild>
+                <Link to="/register">Register</Link>
+              </Button>
+            </>
+          )}
         </div>
 
         {/* Mobile toggle */}
@@ -82,12 +115,25 @@ const Navbar = () => {
                 </Link>
               ))}
               <div className="flex gap-3 mt-2">
-                <Button variant="ghost" size="sm" className="flex-1" asChild>
-                  <Link to="/dashboard">Dashboard</Link>
-                </Button>
-                <Button variant="hero" size="sm" className="flex-1" asChild>
-                  <Link to="/simulation">Launch Evaluation</Link>
-                </Button>
+                {isAuthenticated ? (
+                  <>
+                    <Button variant="ghost" size="sm" className="flex-1" onClick={() => void handleLogout()}>
+                      Log Out
+                    </Button>
+                    <Button variant="hero" size="sm" className="flex-1" asChild>
+                      <Link to="/dashboard">Dashboard</Link>
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button variant="ghost" size="sm" className="flex-1" asChild>
+                      <Link to="/login">Login</Link>
+                    </Button>
+                    <Button variant="hero" size="sm" className="flex-1" asChild>
+                      <Link to="/register">Register</Link>
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </motion.div>
