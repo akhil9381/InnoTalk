@@ -14,6 +14,7 @@ const { initializeRedis } = require('./config/redis');
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 const simulationRoutes = require('./routes/simulations');
+const simulationFlowRoutes = require('./routes/simulationFlow');
 const aiRoutes = require('./routes/ai');
 const artifactRoutes = require('./routes/artifacts');
 const analyticsRoutes = require('./routes/analytics');
@@ -78,6 +79,7 @@ app.get('/health', (req, res) => {
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api', simulationFlowRoutes);
 app.use('/api/simulations', simulationRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/artifacts', artifactRoutes);

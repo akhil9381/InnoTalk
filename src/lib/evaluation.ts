@@ -28,6 +28,8 @@ export type StartupProfile = {
   solutionApproach: string;
   model: string;
   stage: string;
+  difficulty: "easy" | "realistic" | "hardcore";
+  evaluationMode: "reality-engine" | "pitch-evaluator";
 };
 
 export type PhaseResponse = {
@@ -38,7 +40,32 @@ export type PhaseResponse = {
   feedback: string;
   strengths: string[];
   blindspots: string[];
+  stakeholderReaction: string;
+  mentorTip: string;
+  shortTermOutcome: string;
+  longTermOutcome: string;
+  disruption: string | null;
   timestamp: string;
+};
+
+export type RealityDisruption = {
+  title: string;
+  description: string;
+  impact: string;
+};
+
+export type SmartScorecard = {
+  impact: number;
+  financialSustainability: number;
+  ethics: number;
+  risk: number;
+};
+
+export type FailureReplayItem = {
+  phaseId: number;
+  phaseName: string;
+  issue: string;
+  betterAlternative: string;
 };
 
 export type EvaluationSession = {
@@ -54,6 +81,13 @@ export type EvaluationSession = {
   strengths: string[];
   blindspots: string[];
   recommendedActions: string[];
+  scorecard: SmartScorecard;
+  mentorTip: string;
+  activeDisruption: RealityDisruption | null;
+  disruptionHistory: RealityDisruption[];
+  level: string;
+  badges: string[];
+  failureReplay: FailureReplayItem[];
   createdAt: string;
   updatedAt: string;
 };
@@ -166,6 +200,52 @@ export const defaultDimensionScores: Record<ReadinessDimension, number> = {
   governance: 52,
 };
 
+const disruptionLibrary: Record<string, RealityDisruption[]> = {
+  default: [
+    {
+      title: "Policy change lands early",
+      description: "A local authority introduces a new approval requirement before public rollout.",
+      impact: "Compliance work rises and launch speed may drop.",
+    },
+    {
+      title: "Funding cut hits the pilot",
+      description: "A grant or sponsor delays the next tranche of support.",
+      impact: "You need a leaner rollout plan and sharper resource allocation.",
+    },
+    {
+      title: "Social backlash emerges online",
+      description: "A vocal community group questions your intent and operating model.",
+      impact: "Trust drops unless communication and local partnerships improve fast.",
+    },
+    {
+      title: "Media coverage drives viral growth",
+      description: "A news mention causes a sudden spike in inbound demand.",
+      impact: "Operational strain rises, but so does market proof if you handle it well.",
+    },
+  ],
+  healthcare: [
+    {
+      title: "District health officer raises safeguards",
+      description: "Officials want stronger consent, referral, and data-handling processes.",
+      impact: "Policy readiness becomes a gating factor before scale.",
+    },
+  ],
+  education: [
+    {
+      title: "School leadership questions classroom disruption",
+      description: "Teachers worry the intervention will add workload and reduce teaching time.",
+      impact: "Adoption now depends on ease of implementation and training support.",
+    },
+  ],
+  environment: [
+    {
+      title: "Community questions land and livelihood effects",
+      description: "Residents want proof the innovation will not create hidden local harm.",
+      impact: "Trust and stakeholder engagement become the immediate priority.",
+    },
+  ],
+};
+
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
 const unique = (items: string[]) => [...new Set(items)];
@@ -186,6 +266,18 @@ export const createEmptySession = (profile: StartupProfile): EvaluationSession =
   strengths: [],
   blindspots: [],
   recommendedActions: [],
+  scorecard: {
+    impact: 52,
+    financialSustainability: 52,
+    ethics: 52,
+    risk: 48,
+  },
+  mentorTip: "Use the AI-powered reality engine to balance impact, resilience, and stakeholder trust in every decision.",
+  activeDisruption: null,
+  disruptionHistory: [],
+  level: "Beginner",
+  badges: [],
+  failureReplay: [],
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
 });
@@ -273,6 +365,122 @@ const buildFeedback = (phase: EvaluationPhase, answer: string, score: number) =>
   };
 };
 
+const getResponseLine = (answer: string, label: string) => {
+  const pattern = new RegExp(`${label}:\\s*(.+)`);
+  const match = answer.match(pattern);
+  return match?.[1]?.trim() ?? "";
+};
+
+const buildStakeholderReaction = (phase: EvaluationPhase, score: number) => {
+  if (score >= 80) {
+    return `${phase.agentName} sees a credible path and would stay engaged if you maintain execution discipline.`;
+  }
+  if (score >= 65) {
+    return `${phase.agentName} sees potential, but would ask for stronger proof before backing a wider rollout.`;
+  }
+  return `${phase.agentName} would likely hesitate, delay, or challenge the launch until major gaps are closed.`;
+};
+
+const buildMentorTip = (phase: EvaluationPhase, score: number, answer: string) => {
+  const normalized = answer.toLowerCase();
+
+  if (score < 65) {
+    return `Mentor note: before moving on, tighten your ${phase.name.toLowerCase()} answer with one concrete proof point, one stakeholder owner, and one fallback plan.`;
+  }
+  if (!/(policy|government|compliance|approval)/.test(normalized) && phase.id >= 5) {
+    return "Mentor note: add policy and institutional friction early so the plan feels ready for the real operating environment.";
+  }
+  if (!/(customer|community|beneficiar|school|clinic|ngo)/.test(normalized)) {
+    return "Mentor note: strengthen the customer and community reaction angle so the market view is not only founder-driven.";
+  }
+
+  return "Mentor note: this is moving in the right direction. Keep pressure-testing the tradeoff between speed, trust, and sustainability.";
+};
+
+const buildConsequenceTimeline = (phase: EvaluationPhase, score: number, answer: string) => {
+  const chosenOption = getResponseLine(answer, "Chosen option");
+  const selectedConsequence = getResponseLine(answer, "Expected consequence");
+  const baseChoice = chosenOption || "your current response path";
+  const shortTermOutcome = selectedConsequence
+    || `Immediately after choosing ${baseChoice}, stakeholders reassess whether the venture looks practical and credible.`;
+
+  const longTermOutcome =
+    score >= 80
+      ? `Three months later, ${baseChoice} strengthens trust and creates a stronger case for controlled scale.`
+      : score >= 65
+        ? `Three months later, ${baseChoice} creates mixed signals. Momentum remains possible, but weak spots can still slow adoption.`
+        : `Three months later, ${baseChoice} increases the chance of trust erosion, partner hesitation, or a stalled launch.`;
+
+  return { shortTermOutcome, longTermOutcome };
+};
+
+const buildSmartScorecard = (dimensionScores: Record<ReadinessDimension, number>): SmartScorecard => ({
+  impact: clamp(Math.round((dimensionScores.needClarity + dimensionScores.communityTrust) / 2), 35, 95),
+  financialSustainability: clamp(dimensionScores.sustainability, 35, 95),
+  ethics: clamp(Math.round((dimensionScores.communityTrust + dimensionScores.governance) / 2), 35, 95),
+  risk: clamp(100 - Math.round((dimensionScores.governance + dimensionScores.goToMarket) / 2), 5, 90),
+});
+
+const buildFailureReplay = (responses: PhaseResponse[]): FailureReplayItem[] =>
+  responses
+    .filter((response) => response.score < 72)
+    .slice(-3)
+    .map((response) => ({
+      phaseId: response.phaseId,
+      phaseName: response.phaseName,
+      issue: response.blindspots[0] || "This decision path still leaves a launch risk unresolved.",
+      betterAlternative: response.mentorTip,
+    }));
+
+const buildLevel = (overall: number) => {
+  if (overall >= 85) {
+    return "Changemaker";
+  }
+  if (overall >= 75) {
+    return "Systems Builder";
+  }
+  if (overall >= 65) {
+    return "Market Tester";
+  }
+  return "Beginner";
+};
+
+const buildBadges = (session: EvaluationSession) => {
+  const badges: string[] = [];
+
+  if (session.scorecard.ethics >= 78) {
+    badges.push("Ethical Leader");
+  }
+  if (session.scorecard.risk <= 32) {
+    badges.push("Risk Tamer");
+  }
+  if (session.responses.some((response) => response.disruption)) {
+    badges.push("Survivor");
+  }
+  if (session.scorecard.financialSustainability >= 78) {
+    badges.push("Sustainability Strategist");
+  }
+
+  return unique(badges);
+};
+
+const pickDisruption = (profile: StartupProfile, phaseId: number): RealityDisruption | null => {
+  if (phaseId < 2) {
+    return null;
+  }
+
+  const sectorKey = profile.sector.trim().toLowerCase();
+  const pool = [...(disruptionLibrary[sectorKey] || []), ...disruptionLibrary.default];
+  if (pool.length === 0) {
+    return null;
+  }
+
+  const difficultyBias =
+    profile.difficulty === "hardcore" ? 2 : profile.difficulty === "realistic" ? 1 : 0;
+  const index = (phaseId + profile.startupName.length + difficultyBias) % pool.length;
+  return pool[index];
+};
+
 const updateDimensions = (
   current: Record<ReadinessDimension, number>,
   phase: EvaluationPhase,
@@ -328,6 +536,11 @@ export const summarizeReadiness = (session: EvaluationSession) => {
     "Use an impact sustainability dashboard that links outcomes, adoption, and financial viability before launch.",
   ]).slice(0, 4);
 
+  const scorecard = buildSmartScorecard(session.dimensionScores);
+  const mentorTip =
+    session.responses[session.responses.length - 1]?.mentorTip
+    || "Use the mentor layer to compare short-term wins against long-term market consequences.";
+
   return {
     overallScore: overall,
     readinessDecision,
@@ -335,6 +548,21 @@ export const summarizeReadiness = (session: EvaluationSession) => {
     strengths,
     blindspots,
     recommendedActions,
+    scorecard,
+    mentorTip,
+    level: buildLevel(overall),
+    badges: buildBadges({
+      ...session,
+      overallScore: overall,
+      readinessDecision,
+      readinessSummary,
+      strengths,
+      blindspots,
+      recommendedActions,
+      scorecard,
+      mentorTip,
+    }),
+    failureReplay: buildFailureReplay(session.responses),
   };
 };
 
@@ -347,6 +575,10 @@ export const applyPhaseResponse = (session: EvaluationSession, answer: string): 
   const { score } = scoreAnswer(answer, phase);
   const phaseFeedback = buildFeedback(phase, answer, score);
   const nextDimensions = updateDimensions(session.dimensionScores, phase, score);
+  const mentorTip = buildMentorTip(phase, score, answer);
+  const stakeholderReaction = buildStakeholderReaction(phase, score);
+  const { shortTermOutcome, longTermOutcome } = buildConsequenceTimeline(phase, score, answer);
+  const disruption = pickDisruption(session.profile, phase.id);
   const responses = [
     ...session.responses,
     {
@@ -357,6 +589,11 @@ export const applyPhaseResponse = (session: EvaluationSession, answer: string): 
       feedback: phaseFeedback.feedback,
       strengths: phaseFeedback.strengths,
       blindspots: phaseFeedback.blindspots,
+      stakeholderReaction,
+      mentorTip,
+      shortTermOutcome,
+      longTermOutcome,
+      disruption: disruption?.title ?? null,
       timestamp: new Date().toISOString(),
     },
   ];
@@ -370,6 +607,8 @@ export const applyPhaseResponse = (session: EvaluationSession, answer: string): 
     dimensionScores: nextDimensions,
     currentPhaseIndex: Math.min(nextPhaseIndex, evaluationPhases.length),
     status: nextStatus,
+    activeDisruption: disruption,
+    disruptionHistory: disruption ? [...session.disruptionHistory, disruption] : session.disruptionHistory,
     updatedAt: new Date().toISOString(),
   };
 
