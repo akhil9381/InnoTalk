@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>InnoTalk - Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ["Manrope", "sans-serif"],
+              display: ["Space Grotesk", "sans-serif"]
+            },
+            animation: {
+              fadeIn: "fadeIn 0.5s ease-in",
+              slideUp: "slideUp 0.6s ease-out",
+              pulse: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+              bounce: "bounce 1s infinite"
+            },
+            keyframes: {
+              fadeIn: { "0%": { opacity: "0" }, "100%": { opacity: "1" } },
+              slideUp: { "0%": { opacity: "0", transform: "translateY(20px)" }, "100%": { opacity: "1", transform: "translateY(0)" } }
+            },
+            boxShadow: {
+              panel: "0 20px 48px rgba(15, 23, 42, 0.12)",
+              glow: "0 0 30px rgba(45, 212, 191, 0.2)",
+              card: "0 4px 12px rgba(0, 0, 0, 0.08)"
+            }
+          }
+        }
+      };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .smooth-transition { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+      .card-hover:hover { @apply -translate-y-1 shadow-lg; }
+      .btn-glow { box-shadow: 0 0 20px rgba(45, 212, 191, 0.3); }
+      .stat-card { @apply rounded-2xl border border-white/50 bg-white/80 backdrop-blur p-5 shadow-card dark:border-white/10 dark:bg-slate-900/80 smooth-transition hover:shadow-lg dark:shadow-none; }
+      .stat-value { @apply font-display text-3xl md:text-4xl font-bold bg-gradient-to-r from-teal-600 to-blue-600 bg-clip-text text-transparent; }
+      .stat-label { @apply text-xs font-extrabold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400 mt-1; }
+      
+      /* Advanced animations */
+      @keyframes shimmerFlow {
+        0% { background-position: -1000px 0; }
+        100% { background-position: 1000px 0; }
+      }
+      
+      /* List item styling */
+      #stageTasks li {
+        @apply flex items-start gap-3 text-sm leading-6 text-slate-600 dark:text-slate-300;
+      }
+      
+      #stageTasks li span:first-child {
+        @apply mt-0.5 text-teal-500 font-bold text-lg flex-shrink-0;
+      }
+      
+      /* Enhanced button hovers */
+      #advanceButton, #resetButton, #exportButton {
+        @apply transition-all duration-300 active:scale-95;
+      }
+      
+      #advanceButton:hover {
+        box-shadow: 0 10px 25px rgba(13, 148, 136, 0.25);
+      }
+      
+      /* Card animations on load */
+      @keyframes slideInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      
+      main > header {
+        animation: slideInUp 0.5s ease-out;
+      }
+      
+      main article {
+        animation: slideInUp 0.6s ease-out;
+      }
+      
+      /* Progress bar animation */
+      .progress-fill {
+        transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+      
+      /* Hover effects for stat cards */
+      .stat-card {
+        cursor: pointer;
+        position: relative;
+      }
+      
+      .stat-card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 1rem;
+        background: linear-gradient(135deg, rgba(45, 212, 191, 0.1), transparent);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      
+      .stat-card:hover::before {
+        opacity: 1;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen bg-slate-100 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100">
+    <div class="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(45,212,191,0.16),transparent_24%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.18),transparent_30%)]">
+      <div class="mx-auto max-w-[1600px] p-4 md:p-6">
+        <section id="appView" class="min-h-[calc(100vh-2rem)] gap-6 xl:grid xl:grid-cols-[300px_minmax(0,1fr)] flex flex-col xl:flex-row">
+          <!-- Sidebar -->
+          <aside class="xl:col-start-1 xl:row-start-1 rounded-3xl border border-white/10 bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 p-6 text-slate-50 shadow-panel backdrop-blur animate-fadeIn" style="animation-duration: 0.4s">
+            <!-- Logo -->
+            <div class="mb-6 flex items-center gap-3 pb-4 border-b border-white/10">
+              <div class="grid h-14 w-14 place-items-center rounded-xl bg-gradient-to-br from-teal-400 via-teal-300 to-blue-500 font-extrabold tracking-[0.2em] text-slate-950 shadow-lg">IT</div>
+              <div>
+                <p class="text-[10px] font-extrabold uppercase tracking-[0.25em] text-teal-300">Execution OS</p>
+                <h2 class="font-display text-xl font-bold">InnoTalk</h2>
+              </div>
+            </div>
+
+            <!-- User Profile Section -->
+            <section class="mb-5 rounded-2xl border border-white/10 bg-white/5 p-4 hover:bg-white/8 smooth-transition">
+              <div class="flex items-center justify-between gap-3">
+                <h3 class="font-semibold text-sm">Workspace</h3>
+                <button id="logoutButton" type="button" class="rounded-full bg-red-500/10 px-3 py-1.5 text-xs font-bold text-red-400 hover:bg-red-500/20 smooth-transition">Logout</button>
+              </div>
+              <div class="mt-4 space-y-3">
+                <div>
+                  <p class="text-[10px] font-extrabold uppercase tracking-[0.25em] text-slate-400">Founder</p>
+                  <h4 id="founderName" class="mt-1 text-base font-bold">User</h4>
+                  <p id="founderEmail" class="text-xs text-slate-400 mt-0.5"></p>
+                </div>
+                <div class="pt-3 border-t border-white/10">
+                  <p class="text-[10px] font-extrabold uppercase tracking-[0.25em] text-teal-300">Current stage</p>
+                  <p id="currentStageName" class="mt-1 font-bold text-sm">Phase 1</p>
+                </div>
+                <div class="pt-2">
+                  <p class="text-[10px] font-extrabold uppercase tracking-[0.25em] text-slate-400">Verdict</p>
+                  <span id="verdictPill" class="mt-2 inline-flex rounded-full bg-teal-400/20 px-3 py-1 text-xs font-bold text-teal-200 border border-teal-400/30">Calibrating</span>
+                </div>
+              </div>
+            </section>
+
+            <!-- Module Progress -->
+            <section class="mb-5 rounded-2xl border border-white/10 bg-white/5 p-4">
+              <div class="flex items-center justify-between gap-3 mb-4">
+                <h3 class="font-semibold text-sm">Modules</h3>
+                <span id="progressValue" class="text-xs font-bold text-teal-300 bg-teal-400/20 px-2 py-1 rounded-full">1 / 7</span>
+              </div>
+              <div id="phaseList" class="grid gap-2 max-h-96 overflow-y-auto"></div>
+            </section>
+
+            <!-- Session History -->
+            <section class="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <h3 class="font-semibold text-sm mb-3">Recent</h3>
+              <div id="historyList" class="grid gap-2 max-h-64 overflow-y-auto text-xs"></div>
+            </section>
+          </aside>
+
+          <!-- Main Content -->
+          <main class="pt-6 xl:pt-0 xl:col-start-2 xl:row-start-1 animate-slideUp" style="animation-duration: 0.5s">
+            <!-- Hero Header -->
+            <header class="rounded-3xl border border-white/50 bg-gradient-to-br from-white via-white/95 to-white/90 p-8 shadow-panel backdrop-blur dark:border-white/10 dark:bg-gradient-to-br dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-900/90 mb-6">
+              <div class="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
+                <div>
+                  <p class="text-xs font-extrabold uppercase tracking-[0.3em] text-teal-600 dark:text-teal-400">Simulation Cockpit</p>
+                  <h2 class="mt-3 max-w-5xl font-display text-5xl md:text-6xl font-bold leading-tight">
+                    Transform raw ideas into founder-grade execution plans
+                  </h2>
+                  <p class="mt-4 max-w-4xl text-base leading-8 text-slate-600 dark:text-slate-300">
+                    Navigate feasibility, compliance, funding, market pressure, crisis management, and investor scrutiny in one integrated simulation environment.
+                  </p>
+                </div>
+                <div class="flex flex-wrap gap-2 xl:flex-nowrap xl:flex-col">
+                  <button id="advanceButton" type="button" class="rounded-full bg-gradient-to-r from-teal-600 to-blue-600 px-6 py-3 font-bold text-white shadow-lg transition hover:-translate-y-1 hover:shadow-xl active:scale-95 whitespace-nowrap">
+                    ↻ Advance
+                  </button>
+                  <button id="resetButton" type="button" class="rounded-full border-2 border-slate-300 bg-white px-6 py-3 font-semibold text-slate-900 transition hover:-translate-y-0.5 hover:border-slate-400 dark:border-white/20 dark:bg-white/5 dark:text-slate-100 whitespace-nowrap">
+                    ⟲ Reset
+                  </button>
+                  <button id="exportButton" type="button" class="rounded-full border-2 border-slate-300 bg-white px-6 py-3 font-semibold text-slate-900 transition hover:-translate-y-0.5 hover:border-slate-400 dark:border-white/20 dark:bg-white/5 dark:text-slate-100 whitespace-nowrap">
+                    ⬇ Export
+                  </button>
+                </div>
+              </div>
+            </header>
+
+            <p id="appMessage" class="min-h-6 text-sm text-slate-500 dark:text-slate-300 mb-4"></p>
+
+            <!-- Stats Grid -->
+            <section id="statsGrid" class="mb-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6"></section>
+
+            <!-- Content Grid -->
+            <section class="grid grid-cols-12 gap-4">
+              <!-- Live Module Card -->
+              <article class="col-span-12 rounded-3xl border border-white/50 bg-white/85 p-7 shadow-panel backdrop-blur dark:border-white/10 dark:bg-slate-900/85 lg:col-span-7 smooth-transition hover:shadow-lg">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-4 pb-4 border-b border-slate-200 dark:border-white/10">
+                  <div>
+                    <p class="text-xs font-extrabold uppercase tracking-[0.3em] text-teal-600 dark:text-teal-400">Live Module</p>
+                    <h3 id="stageTitle" class="mt-2 font-display text-4xl font-bold"></h3>
+                  </div>
+                  <span id="stageType" class="inline-flex rounded-full bg-teal-100 px-4 py-2 text-sm font-bold text-teal-700 dark:bg-teal-400/20 dark:text-teal-300 whitespace-nowrap"></span>
+                </div>
+                <p id="stageSummary" class="text-base leading-8 text-slate-600 dark:text-slate-300 mb-6"></p>
+                
+                <div class="mb-6">
+                  <h4 class="font-semibold text-sm uppercase tracking-[0.1em] text-slate-700 dark:text-slate-300">Deliverables</h4>
+                  <div id="stageOutputs" class="mt-3 flex flex-wrap gap-2"></div>
+                </div>
+                
+                <div class="mb-6">
+                  <h4 class="font-semibold text-sm uppercase tracking-[0.1em] text-slate-700 dark:text-slate-300">Focus Areas</h4>
+                  <ul id="stageTasks" class="mt-3 grid gap-2"></ul>
+                </div>
+                
+                <div class="rounded-2xl bg-gradient-to-br from-teal-50 to-blue-50 dark:from-teal-400/10 dark:to-blue-400/10 p-5 border border-teal-200 dark:border-teal-400/20">
+                  <h4 class="font-bold text-sm text-teal-900 dark:text-teal-100">💡 Engine Insight</h4>
+                  <p id="stageInsight" class="mt-2 text-sm leading-6 text-teal-800 dark:text-teal-200"></p>
+                </div>
+              </article>
+
+              <!-- Market Intelligence Card -->
+              <article class="col-span-12 rounded-3xl border border-white/50 bg-white/85 p-7 shadow-panel backdrop-blur dark:border-white/10 dark:bg-slate-900/85 lg:col-span-5 smooth-transition hover:shadow-lg">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-4 pb-4 border-b border-slate-200 dark:border-white/10">
+                  <div>
+                    <p class="text-xs font-extrabold uppercase tracking-[0.3em] text-blue-600 dark:text-blue-400">Intelligence</p>
+                    <h3 class="mt-2 font-display text-2xl font-bold">Market & Funding</h3>
+                  </div>
+                  <span class="inline-flex rounded-full bg-blue-100 px-4 py-2 text-sm font-bold text-blue-700 dark:bg-blue-400/20 dark:text-blue-300">Live</span>
+                </div>
+                
+                <div class="grid gap-5">
+                  <div>
+                    <h4 class="font-bold text-sm uppercase tracking-[0.1em] text-slate-700 dark:text-slate-300">Investor Sentiment</h4>
+                    <p id="trendSummary" class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300"></p>
+                  </div>
+                  
+                  <div>
+                    <h4 class="font-bold text-sm uppercase tracking-[0.1em] text-slate-700 dark:text-slate-300">Funding Stages</h4>
+                    <div id="fundingMatches" class="mt-2 flex flex-wrap gap-2"></div>
+                  </div>
+                </div>
+                
+                <div class="mt-5 rounded-2xl bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-400/10 dark:to-cyan-400/10 p-5 border border-blue-200 dark:border-blue-400/20">
+                  <p class="text-xs font-extrabold uppercase tracking-[0.2em] text-blue-700 dark:text-blue-400">Strategic Play</p>
+                  <p id="decisionCallout" class="mt-2 font-bold text-blue-900 dark:text-blue-100"></p>
+                </div>
+              </article>
+
+              <!-- Crisis Simulation Card -->
+              <article class="col-span-12 rounded-3xl border border-white/50 bg-white/85 p-7 shadow-panel backdrop-blur dark:border-white/10 dark:bg-slate-900/85 lg:col-span-6 smooth-transition hover:shadow-lg">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-4 pb-4 border-b border-slate-200 dark:border-white/10">
+                  <div>
+                    <p class="text-xs font-extrabold uppercase tracking-[0.3em] text-red-600 dark:text-red-400">Pressure Test</p>
+                    <h3 class="mt-2 font-display text-2xl font-bold">Crisis Scenarios</h3>
+                  </div>
+                  <span id="crisisBadge" class="inline-flex rounded-full bg-red-100 px-4 py-2 text-sm font-bold text-red-700 dark:bg-red-400/20 dark:text-red-300"></span>
+                </div>
+                <p id="crisisIntro" class="text-sm leading-6 text-slate-600 dark:text-slate-300 mb-4"></p>
+                <div id="crisisVoices" class="grid gap-3"></div>
+              </article>
+
+              <!-- Board Evaluation Card -->
+              <article class="col-span-12 rounded-3xl border border-white/50 bg-white/85 p-7 shadow-panel backdrop-blur dark:border-white/10 dark:bg-slate-900/85 lg:col-span-6 smooth-transition hover:shadow-lg">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-4 pb-4 border-b border-slate-200 dark:border-white/10">
+                  <div>
+                    <p class="text-xs font-extrabold uppercase tracking-[0.3em] text-purple-600 dark:text-purple-400">Boardroom</p>
+                    <h3 class="mt-2 font-display text-2xl font-bold">Investor Scrutiny</h3>
+                  </div>
+                  <span id="boardScore" class="inline-flex rounded-full bg-purple-100 px-4 py-2 text-sm font-bold text-purple-700 dark:bg-purple-400/20 dark:text-purple-300">0.0 / 10</span>
+                </div>
+                <div id="boardQuestions" class="grid gap-3 mb-5"></div>
+                <div class="rounded-2xl bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-400/10 dark:to-pink-400/10 p-5 border border-purple-200 dark:border-purple-400/20">
+                  <p id="boardFeedback" class="text-sm leading-6 text-purple-900 dark:text-purple-100"></p>
+                </div>
+              </article>
+
+              <!-- Final Report Card -->
+              <article class="col-span-12 rounded-3xl border border-white/50 bg-white/85 p-7 shadow-panel backdrop-blur dark:border-white/10 dark:bg-slate-900/85 smooth-transition hover:shadow-lg">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-6 pb-4 border-b border-slate-200 dark:border-white/10">
+                  <div>
+                    <p class="text-xs font-extrabold uppercase tracking-[0.3em] text-emerald-600 dark:text-emerald-400">Analysis</p>
+                    <h3 class="mt-2 font-display text-2xl font-bold">Simulation Report</h3>
+                  </div>
+                  <span id="readinessBadge" class="inline-flex rounded-full bg-emerald-100 px-4 py-2 text-sm font-bold text-emerald-700 dark:bg-emerald-400/20 dark:text-emerald-300"></span>
+                </div>
+                
+                <div class="grid gap-6 lg:grid-cols-3">
+                  <div class="rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-400/10 dark:to-teal-400/10 p-4 border border-emerald-200 dark:border-emerald-400/20">
+                    <h4 class="font-bold text-sm text-emerald-900 dark:text-emerald-100">Business Architecture</h4>
+                    <p id="reportArchitecture" class="mt-2 text-sm leading-6 text-emerald-800 dark:text-emerald-200"></p>
+                  </div>
+                  
+                  <div class="rounded-2xl bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-400/10 dark:to-red-400/10 p-4 border border-orange-200 dark:border-orange-400/20">
+                    <h4 class="font-bold text-sm text-orange-900 dark:text-orange-100">Failure Analysis</h4>
+                    <p id="reportMistakes" class="mt-2 text-sm leading-6 text-orange-800 dark:text-orange-200"></p>
+                  </div>
+                  
+                  <div class="rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-400/10 dark:to-indigo-400/10 p-4 border border-blue-200 dark:border-blue-400/20">
+                    <h4 class="font-bold text-sm text-blue-900 dark:text-blue-100">2026 Roadmap</h4>
+                    <p id="reportRoadmap" class="mt-2 text-sm leading-6 text-blue-800 dark:text-blue-200"></p>
+                  </div>
+                </div>
+              </article>
+            </section>
+          </main>
+        </section>
+      </div>
+    </div>
+
+    <!-- Templates -->
+    <template id="phaseItemTemplate">
+      <button type="button" class="phase-item grid w-full grid-cols-[40px_1fr] gap-2 rounded-xl bg-white/5 p-3 text-left transition hover:bg-white/10 hover:-translate-y-0.5 smooth-transition">
+        <span class="phase-step grid h-10 w-10 place-items-center rounded-lg bg-white/10 font-bold text-xs text-teal-300"></span>
+        <span class="grid gap-1">
+          <strong class="phase-title text-xs font-bold"></strong>
+          <span class="phase-subtitle text-[10px] text-slate-400"></span>
+        </span>
+      </button>
+    </template>
+
+    <template id="historyItemTemplate">
+      <article class="rounded-lg bg-white/5 p-2.5 hover:bg-white/8 smooth-transition">
+        <p class="history-time text-[9px] text-slate-400 font-mono"></p>
+        <h4 class="history-title mt-0.5 text-xs font-bold"></h4>
+        <p class="history-body mt-0.5 text-[11px] leading-5 text-slate-300"></p>
+      </article>
+    </template>
+
+    <template id="voiceTemplate">
+      <article class="rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-white/10 p-4 hover:border-white/20 smooth-transition">
+        <div class="flex items-start justify-between gap-3 mb-2">
+          <strong class="voice-role text-sm font-bold text-slate-100"></strong>
+          <span class="voice-stance rounded-full bg-red-500/20 px-2 py-1 text-[10px] font-bold text-red-300 border border-red-500/30"></span>
+        </div>
+        <p class="voice-copy text-sm leading-6 text-slate-300"></p>
+      </article>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
+  </head>
+  <body class="min-h-screen bg-slate-100 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100">
+    <div class="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(45,212,191,0.16),transparent_24%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.18),transparent_30%)]">
+      <div class="mx-auto max-w-[1600px] p-4 md:p-6">
+        <section id="appView" class="min-h-[calc(100vh-2rem)] gap-6 xl:grid xl:grid-cols-[320px_minmax(0,1fr)] flex flex-col xl:flex-row">
+          <aside class="xl:col-start-1 xl:row-start-1 rounded-[30px] border border-white/10 bg-slate-950/85 p-5 text-slate-50 shadow-panel backdrop-blur">
+            <div class="mb-5 flex items-center gap-3">
+              <div class="grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-teal-300 to-blue-400 font-extrabold tracking-[0.2em] text-slate-950">IT</div>
+              <div>
+                <p class="text-[11px] font-extrabold uppercase tracking-[0.28em] text-slate-400">AI-native simulation engine</p>
+                <h2 class="font-display text-2xl">InnoTalk</h2>
+              </div>
+            </div>
+
+            <section class="mb-4 rounded-3xl border border-white/10 bg-white/5 p-4">
+              <div class="flex items-center justify-between gap-3">
+                <h3 class="font-semibold">Workspace</h3>
+                <button id="logoutButton" type="button" class="rounded-full bg-white/10 px-4 py-2 text-sm font-semibold transition hover:-translate-y-0.5">Logout</button>
+              </div>
+              <div class="mt-4 space-y-2">
+                <p class="text-[11px] font-extrabold uppercase tracking-[0.28em] text-slate-400">Founder</p>
+                <h4 id="founderName" class="text-lg font-semibold">User</h4>
+                <p id="founderEmail" class="text-sm text-slate-400"></p>
+              </div>
+              <div class="mt-5 space-y-3">
+                <div>
+                  <p class="text-[11px] font-extrabold uppercase tracking-[0.28em] text-slate-400">Current stage</p>
+                  <p id="currentStageName" class="mt-1 font-semibold">Phase 1</p>
+                </div>
+                <div>
+                  <p class="text-[11px] font-extrabold uppercase tracking-[0.28em] text-slate-400">Verdict</p>
+                  <span id="verdictPill" class="mt-2 inline-flex rounded-full bg-teal-400/15 px-3 py-2 text-sm font-bold text-teal-200">Calibrating</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="mb-4 rounded-3xl border border-white/10 bg-white/5 p-4">
+              <div class="flex items-center justify-between gap-3">
+                <h3 class="font-semibold">Module progress</h3>
+                <span id="progressValue" class="text-sm font-bold text-slate-300">1 / 7</span>
+              </div>
+              <div id="phaseList" class="mt-4 grid gap-3"></div>
+            </section>
+
+            <section class="rounded-3xl border border-white/10 bg-white/5 p-4">
+              <h3 class="font-semibold">Session history</h3>
+              <div id="historyList" class="mt-4 grid gap-3"></div>
+            </section>
+          </aside>
+
+          <main class="pt-6 xl:pt-0 xl:col-start-2 xl:row-start-1">
+            <header class="rounded-[30px] border border-white/50 bg-white/80 p-7 shadow-panel backdrop-blur dark:border-white/10 dark:bg-slate-900/85">
+              <div class="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+                <div>
+                  <p class="text-xs font-extrabold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">Simulation cockpit</p>
+                  <h2 class="mt-2 max-w-5xl font-display text-4xl leading-none md:text-6xl">
+                    Build a founder-grade execution narrative before the market tests it for real.
+                  </h2>
+                  <p class="mt-4 max-w-4xl text-base leading-8 text-slate-500 dark:text-slate-300">
+                    Navigate feasibility, compliance, funding, promotion, crisis, and investor scrutiny in one staged workspace.
+                  </p>
+                </div>
+                <div class="flex flex-wrap gap-3">
+                  <button id="advanceButton" type="button" class="rounded-full bg-gradient-to-r from-teal-700 to-blue-500 px-5 py-3 font-semibold text-white transition hover:-translate-y-0.5">Advance simulation</button>
+                  <button id="resetButton" type="button" class="rounded-full border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-900 transition hover:-translate-y-0.5 dark:border-white/10 dark:bg-white/5 dark:text-slate-100">Reset session</button>
+                  <button id="exportButton" type="button" class="rounded-full border border-slate-200 bg-white px-5 py-3 font-semibold text-slate-900 transition hover:-translate-y-0.5 dark:border-white/10 dark:bg-white/5 dark:text-slate-100">Export brief</button>
+                </div>
+              </div>
+            </header>
+
+            <p id="appMessage" class="mt-4 min-h-6 text-sm text-slate-500 dark:text-slate-300"></p>
+            <section id="statsGrid" class="mt-4 grid gap-4 md:grid-cols-2 2xl:grid-cols-5"></section>
+            <section class="mt-4 grid grid-cols-12 gap-4">
+              <article class="col-span-12 rounded-[26px] border border-white/50 bg-white/80 p-6 shadow-panel backdrop-blur dark:border-white/10 dark:bg-slate-900/85 xl:col-span-7">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <p class="text-xs font-extrabold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">Live module</p>
+                    <h3 id="stageTitle" class="mt-2 font-display text-3xl"></h3>
+                  </div>
+                  <span id="stageType" class="inline-flex rounded-full bg-teal-700/10 px-4 py-2 text-sm font-bold text-teal-700 dark:text-teal-300"></span>
+                </div>
+                <p id="stageSummary" class="mt-4 text-base leading-8 text-slate-500 dark:text-slate-300"></p>
+                <div class="mt-6">
+                  <h4 class="font-semibold">Primary output</h4>
+                  <div id="stageOutputs" class="mt-3 flex flex-wrap gap-2"></div>
+                </div>
+                <div class="mt-6">
+                  <h4 class="font-semibold">Operational focus</h4>
+                  <ul id="stageTasks" class="mt-3 list-disc space-y-2 pl-5 text-sm leading-7 text-slate-500 dark:text-slate-300"></ul>
+                </div>
+                <div class="mt-6 rounded-3xl bg-teal-700/10 p-4 dark:bg-teal-300/10">
+                  <h4 class="font-semibold">Engine notes</h4>
+                  <p id="stageInsight" class="mt-2 text-sm leading-7 text-slate-500 dark:text-slate-300"></p>
+                </div>
+              </article>
+
+              <article class="col-span-12 rounded-[26px] border border-white/50 bg-white/80 p-6 shadow-panel backdrop-blur dark:border-white/10 dark:bg-slate-900/85 xl:col-span-5">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <p class="text-xs font-extrabold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">Decision intelligence</p>
+                    <h3 class="mt-2 font-display text-3xl">Market + funding cockpit</h3>
+                  </div>
+                  <span class="inline-flex rounded-full bg-blue-600/10 px-4 py-2 text-sm font-bold text-blue-700 dark:text-blue-300">2026 ready</span>
+                </div>
+                <div class="mt-5 grid gap-5 lg:grid-cols-2">
+                  <section>
+                    <h4 class="font-semibold">Investor trendline</h4>
+                    <p id="trendSummary" class="mt-2 text-sm leading-7 text-slate-500 dark:text-slate-300"></p>
+                  </section>
+                  <section>
+                    <h4 class="font-semibold">Funding matches</h4>
+                    <div id="fundingMatches" class="mt-3 flex flex-wrap gap-2"></div>
+                  </section>
+                </div>
+                <div class="mt-5 rounded-3xl bg-teal-700/10 p-4 dark:bg-teal-300/10">
+                  <p class="text-xs font-extrabold uppercase tracking-[0.28em] text-slate-500 dark:text-slate-400">Strategic recommendation</p>
+                  <p id="decisionCallout" class="mt-2 font-semibold"></p>
+                </div>
+              </article>
+
+              <article class="col-span-12 rounded-[26px] border border-white/50 bg-white/80 p-6 shadow-panel backdrop-blur dark:border-white/10 dark:bg-slate-900/85 xl:col-span-6">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <p class="text-xs font-extrabold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">Pressure simulation</p>
+                    <h3 class="mt-2 font-display text-3xl">Dynamic Crisis Engine</h3>
+                  </div>
+                  <span id="crisisBadge" class="inline-flex rounded-full bg-teal-700/10 px-4 py-2 text-sm font-bold text-teal-700 dark:text-teal-300"></span>
+                </div>
+                <p id="crisisIntro" class="mt-4 text-sm leading-7 text-slate-500 dark:text-slate-300"></p>
+                <div id="crisisVoices" class="mt-4 grid gap-3"></div>
+              </article>
+
+              <article class="col-span-12 rounded-[26px] border border-white/50 bg-white/80 p-6 shadow-panel backdrop-blur dark:border-white/10 dark:bg-slate-900/85 xl:col-span-6">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <p class="text-xs font-extrabold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">Final boardroom</p>
+                    <h3 class="mt-2 font-display text-3xl">Investor pitch gauntlet</h3>
+                  </div>
+                  <span id="boardScore" class="inline-flex rounded-full bg-teal-700/10 px-4 py-2 text-sm font-bold text-teal-700 dark:text-teal-300">0.0 / 10</span>
+                </div>
+                <div id="boardQuestions" class="mt-4 grid gap-3"></div>
+                <div class="mt-4 rounded-3xl bg-teal-700/10 p-4 dark:bg-teal-300/10">
+                  <p id="boardFeedback" class="text-sm leading-7 text-slate-500 dark:text-slate-300"></p>
+                </div>
+              </article>
+
+              <article class="col-span-12 rounded-[26px] border border-white/50 bg-white/80 p-6 shadow-panel backdrop-blur dark:border-white/10 dark:bg-slate-900/85">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <p class="text-xs font-extrabold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">Post-simulation intelligence</p>
+                    <h3 class="mt-2 font-display text-3xl">Smart report</h3>
+                  </div>
+                  <span id="readinessBadge" class="inline-flex rounded-full bg-teal-700/10 px-4 py-2 text-sm font-bold text-teal-700 dark:text-teal-300"></span>
+                </div>
+                <div class="mt-5 grid gap-5 xl:grid-cols-3">
+                  <section>
+                    <h4 class="font-semibold">Business architecture</h4>
+                    <p id="reportArchitecture" class="mt-2 text-sm leading-7 text-slate-500 dark:text-slate-300"></p>
+                  </section>
+                  <section>
+                    <h4 class="font-semibold">Mistake analysis</h4>
+                    <p id="reportMistakes" class="mt-2 text-sm leading-7 text-slate-500 dark:text-slate-300"></p>
+                  </section>
+                  <section>
+                    <h4 class="font-semibold">2026 roadmap</h4>
+                    <p id="reportRoadmap" class="mt-2 text-sm leading-7 text-slate-500 dark:text-slate-300"></p>
+                  </section>
+                </div>
+              </article>
+            </section>
+          </main>
+        </section>
+      </div>
+    </div>
+
+    <template id="phaseItemTemplate">
+      <button type="button" class="phase-item grid w-full grid-cols-[44px_1fr] gap-3 rounded-2xl bg-white/5 p-3 text-left transition hover:-translate-y-0.5">
+        <span class="phase-step grid h-11 w-11 place-items-center rounded-2xl bg-white/10 font-extrabold"></span>
+        <span class="grid gap-1">
+          <strong class="phase-title text-sm"></strong>
+          <span class="phase-subtitle text-xs text-slate-400"></span>
+        </span>
+      </button>
+    </template>
+
+    <template id="historyItemTemplate">
+      <article class="rounded-2xl bg-white/5 p-3">
+        <p class="history-time text-xs text-slate-400"></p>
+        <h4 class="history-title mt-1 text-sm font-semibold"></h4>
+        <p class="history-body mt-1 text-xs leading-6 text-slate-300"></p>
+      </article>
+    </template>
+
+    <template id="voiceTemplate">
+      <article class="rounded-3xl bg-slate-200/60 p-4 dark:bg-white/5">
+        <div class="flex items-center justify-between gap-3">
+          <strong class="voice-role"></strong>
+          <span class="voice-stance rounded-full bg-blue-600/10 px-3 py-1 text-xs font-bold text-blue-700 dark:text-blue-300"></span>
+        </div>
+        <p class="voice-copy mt-3 text-sm leading-7 text-slate-500 dark:text-slate-300"></p>
+      </article>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>

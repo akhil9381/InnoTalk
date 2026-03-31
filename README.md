@@ -1,3 +1,6 @@
+<<<<<<< HEAD
+# InnoTalk
+=======
 # InnoTalk
 
 InnoTalk is a social entrepreneurship and innovation simulation platform. It helps founders explore realistic market situations, stakeholder reactions, policy risks, resource tradeoffs, and social-impact consequences through an AI-guided simulation workflow.
@@ -178,3 +181,4 @@ Optional backend env:
 - Email is optional in local development.
 - Gemini is the active AI provider in the current implementation.
 - Some older backend modules still reflect a larger historical simulation design; the architecture document below shows the intended consolidated direction for the product.
+>>>>>>> main

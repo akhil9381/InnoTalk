@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InnoTalk</title>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #fff;
+        }
+
+        .container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            max-width: 400px;
+            width: 90%;
+            backdrop-filter: blur(10px);
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #fff;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        p {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+
+        .countdown {
+            font-size: 0.9em;
+            opacity: 0.8;
+            margin-bottom: 20px;
+        }
+
+        a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 1em;
+            border: 1px solid #fff;
+            padding: 10px 20px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            display: none;
+        }
+
+        a:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+
+        .btn {
+            display: inline-block;
+            margin-top: 10px;
+            background: #fff;
+            color: #764ba2;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #f0f0f0;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="spinner"></div>
+        <p>Redirecting to login...</p>
+        <div class="countdown" id="countdown">Redirecting in 2 seconds...</div>
+
+        <button class="btn" onclick="goNow()">Go to Login Now</button>
+        <br><br>
+        <a href="login.html" id="fallback">Click here if not redirected</a>
+    </div>
+
+    <script>
+        let timeLeft = 2;
+
+        const countdownEl = document.getElementById("countdown");
+
+        const timer = setInterval(() => {
+            timeLeft--;
+            countdownEl.textContent = `Redirecting in ${timeLeft} seconds...`;
+
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                window.location.href = "login.html";
+            }
+        }, 1000);
+
+        function goNow() {
+            window.location.href = "login.html";
+        }
+
+        // Fallback link after 3 seconds
+        setTimeout(() => {
+            document.getElementById("fallback").style.display = "inline-block";
+        }, 3000);
+    </script>
+</body>
+</html>
